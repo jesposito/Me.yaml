@@ -38,20 +38,30 @@ func NewUserError(message, action, technical string) UserError {
 
 func normalizeDate(dateStr string) string {
 	dateStr = strings.TrimSpace(dateStr)
-	if dateStr == "" || strings.EqualFold(dateStr, "null") {
+	if dateStr == "" || strings.EqualFold(dateStr, "null") || strings.EqualFold(dateStr, "present") {
 		return ""
 	}
 
-	switch len(dateStr) {
-	case 10:
-		return dateStr
-	case 7:
-		return dateStr + "-01"
-	case 4:
-		return dateStr + "-01-01"
-	default:
-		return ""
+	if idx := strings.IndexAny(dateStr, "T "); idx != -1 {
+		dateStr = dateStr[:idx]
 	}
+
+	layouts := []struct {
+		format string
+		suffix string
+	}{
+		{"2006-01-02", ""},
+		{"2006-01", "-01"},
+		{"2006", "-01-01"},
+	}
+
+	for _, l := range layouts {
+		if _, err := time.Parse(l.format, dateStr); err == nil {
+			return dateStr + l.suffix
+		}
+	}
+
+	return ""
 }
 
 // RegisterResumeUploadHooks registers resume upload and parsing endpoints

@@ -5,7 +5,7 @@
 	export let profile: Profile | null;
 
 	$: contactLinks = profile?.contact_links || [];
-	$: heroImageUrl = profile?.hero_image || (profile as unknown as { hero_image_url?: string })?.hero_image_url || null;
+	$: heroImageUrl = profile?.hero_image_url || profile?.hero_image || null;
 </script>
 
 <header class="relative bg-gradient-to-br from-gray-900 to-gray-800 text-white">

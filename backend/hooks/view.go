@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -381,7 +382,7 @@ func RegisterViewHooks(app *pocketbase.PocketBase, crypto *services.CryptoServic
 			}
 
 			if heroImage := view.GetString("hero_image"); heroImage != "" {
-				response["hero_image_url"] = "/api/files/" + view.Collection().Id + "/" + view.Id + "/" + heroImage
+				response["hero_image_url"] = "/api/files/" + view.Collection().Id + "/" + view.Id + "/" + url.PathEscape(heroImage)
 			}
 
 			// Get sections configuration

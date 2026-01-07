@@ -6,7 +6,7 @@
 	export let layout: string = 'default';
 
 	function stripBulletPrefix(text: string): string {
-		return text.replace(/^[\s]*[•\-\*]\s*/, '');
+		return text.replace(/^\s*[•\-\*–—·●◦▪▸►]\s*/, '').replace(/^\s*\d+[.)]\s+/, '');
 	}
 </script>
 
