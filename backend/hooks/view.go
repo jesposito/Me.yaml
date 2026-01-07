@@ -380,6 +380,10 @@ func RegisterViewHooks(app *pocketbase.PocketBase, crypto *services.CryptoServic
 				response["accent_color"] = accentColor
 			}
 
+			if heroImage := view.GetString("hero_image"); heroImage != "" {
+				response["hero_image_url"] = "/api/files/" + view.Collection().Id + "/" + view.Id + "/" + heroImage
+			}
+
 			// Get sections configuration
 			sectionsJSON := view.GetString("sections")
 			var sections []map[string]interface{}

@@ -11,7 +11,7 @@
 	let dragActive = false;
 	let resumeResult: any = null;
 	let showTechnicalDetails = false;
-	let importVisibility: 'private' | 'public' = 'private';
+	let importVisibility: 'private' | 'unlisted' | 'public' = 'private';
 
 	// GitHub import state
 	let step = 1;
@@ -313,6 +313,8 @@
 				{dragActive
 					? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
 					: 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'}"
+				role="region"
+				aria-label="Resume file drop zone"
 				on:drop={handleResumeFileDrop}
 				on:dragover={(e) => {
 					e.preventDefault();
@@ -378,11 +380,16 @@
 			<!-- Visibility option -->
 			<div class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
 				<label class="label mb-2">Import visibility</label>
-				<div class="flex gap-4">
+				<div class="flex flex-wrap gap-4">
 					<label class="flex items-center gap-2 cursor-pointer">
 						<input type="radio" bind:group={importVisibility} value="private" class="text-primary-600" />
 						<span class="text-sm text-gray-700 dark:text-gray-300">Private</span>
-						<span class="text-xs text-gray-500">(recommended - review before publishing)</span>
+						<span class="text-xs text-gray-500">(recommended)</span>
+					</label>
+					<label class="flex items-center gap-2 cursor-pointer">
+						<input type="radio" bind:group={importVisibility} value="unlisted" class="text-primary-600" />
+						<span class="text-sm text-gray-700 dark:text-gray-300">Unlisted</span>
+						<span class="text-xs text-gray-500">(hidden but shareable)</span>
 					</label>
 					<label class="flex items-center gap-2 cursor-pointer">
 						<input type="radio" bind:group={importVisibility} value="public" class="text-primary-600" />
