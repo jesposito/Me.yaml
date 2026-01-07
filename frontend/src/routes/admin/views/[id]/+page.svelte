@@ -50,6 +50,7 @@
 	let ctaUrl = '';
 	let isActive = true;
 	let isDefault = false;
+	let originalIsDefault = false;
 	let accentColor: AccentColor | null = null;
 	let heroImageUrl: string | null = null;
 	let heroImageFile: File | null = null;
@@ -317,6 +318,7 @@
 				filter: 'is_default = true'
 			});
 			isDefault = defaultViews.items.length > 0 && defaultViews.items[0].id === viewId;
+			originalIsDefault = isDefault;
 
 			accentColor = (view.accent_color as AccentColor) || null;
 
@@ -554,6 +556,7 @@
 			formData.append('is_active', String(isActive));
 			formData.append('sections', JSON.stringify(sectionsData));
 			formData.append('accent_color', accentColor || '');
+			formData.set('is_default', isDefault ? 'true' : 'false');
 
 			if (visibility === 'password' && password.trim()) {
 				formData.append('password', password.trim());
@@ -566,24 +569,17 @@
 			await collection('views').update(viewId, formData);
 			heroImageFile = null;
 
-			// Auto-enable view_visibility for private/draft items added to this view
-			await enableItemsForView(sectionsData);
-
-			// Handle default view setting
-			if (isDefault) {
-				const currentDefaults = await collection('views').getList(1, 100, {
+			if (isDefault && !originalIsDefault) {
+				const currentDefaults = await collection('views').getFullList({
 					filter: `is_default = true && id != "${viewId}"`
 				});
-				for (const v of currentDefaults.items) {
+				for (const v of currentDefaults) {
 					await collection('views').update(v.id, { is_default: false });
 				}
-				await collection('views').update(viewId, { is_default: true });
-			} else {
-				const record = await collection('views').getOne(viewId);
-				if ((record as { is_default?: boolean }).is_default) {
-					await collection('views').update(viewId, { is_default: false });
-				}
 			}
+			originalIsDefault = isDefault;
+
+			await enableItemsForView(sectionsData);
 
 			toasts.add('success', 'View updated successfully');
 		} catch (err) {
