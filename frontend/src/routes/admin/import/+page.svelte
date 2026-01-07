@@ -377,9 +377,8 @@
 				{/if}
 			</div>
 
-			<!-- Visibility option -->
-			<div class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-				<label class="label mb-2">Import visibility</label>
+			<fieldset class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+				<legend class="label mb-2">Import visibility</legend>
 				<div class="flex flex-wrap gap-4">
 					<label class="flex items-center gap-2 cursor-pointer">
 						<input type="radio" bind:group={importVisibility} value="private" class="text-primary-600" />
@@ -400,7 +399,7 @@
 				<p class="text-xs text-gray-500 mt-2">
 					Private items can be made visible per-view when you add them to a view, or changed to public later via bulk actions.
 				</p>
-			</div>
+			</fieldset>
 		{:else}
 			<!-- Import summary -->
 			<div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
