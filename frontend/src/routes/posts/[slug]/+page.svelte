@@ -35,7 +35,7 @@ import { getCanonicalUrl, generateOpenGraphTags } from '$lib/seo';
 	let publishedDate = $derived(data.post.published_at ? formatDate(data.post.published_at) : null);
 	let postThumb = $derived((data.post as Record<string, string>).cover_image_thumb_url ?? data.post.cover_image_url);
 	let postLarge = $derived((data.post as Record<string, string>).cover_image_large_url ?? data.post.cover_image_url);
-	let mediaRefs: Array<RecordModel & { url?: string; title?: string; mime?: string }> = (data.media_refs as any) || [];
+	let mediaRefs = $derived((data.media_refs as Array<RecordModel & { url?: string; title?: string; mime?: string }>) || []);
 
 	let referrerPath = $state('');
 

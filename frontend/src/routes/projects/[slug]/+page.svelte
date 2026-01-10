@@ -30,7 +30,7 @@ let ogTags = $derived(generateOpenGraphTags({
 }));
 
 let referrerPath = $state('');
-let mediaRefs: Array<RecordModel & { url?: string; title?: string; mime?: string }> = (data as any).media_refs || [];
+let mediaRefs = $derived(((data as any).media_refs as Array<RecordModel & { url?: string; title?: string; mime?: string }>) || []);
 
 	onMount(() => {
 		if (!browser) return;

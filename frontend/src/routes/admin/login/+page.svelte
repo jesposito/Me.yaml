@@ -16,11 +16,11 @@
 	let loading = $state(false);
 	let error = $state('');
 	let redirecting = $state(false);
-	let authMethodsLoaded = $state(data?.initialAuthLoaded ?? false);
+	let authMethodsLoaded = $derived(data?.initialAuthLoaded ?? false);
 	let methodsError = $state('');
 
-	let oauthProviders: string[] = data?.oauthProviders ?? [];
-	let passwordAuthEnabled = $state(data?.passwordAuthEnabled ?? true);
+	let oauthProviders = $derived((data?.oauthProviders ?? []) as string[]);
+	let passwordAuthEnabled = $derived(data?.passwordAuthEnabled ?? true);
 	let redirectUrl = '';
 
 	// Reactively redirect when user becomes authenticated
