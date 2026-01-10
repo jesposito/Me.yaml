@@ -35,13 +35,16 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 				published_at: post.published_at || null,
 				created: post.created,
 				updated: post.updated,
-				cover_image_url: post.cover_image_url || null
+				cover_image_url: post.cover_image_url || null,
+				visibility: post.visibility || 'public',
+				is_draft: post.is_draft || false
 			},
 			media_refs: mediaRefs,
 			profile: post.profile || null,
 			prev_post: post.prev_post || null,
 			next_post: post.next_post || null,
-			fromView: fromView || null
+			fromView: fromView || null,
+			isAuthenticated: post.is_authenticated || false
 		};
 	} catch (err) {
 		if ((err as { status?: number }).status === 404) {

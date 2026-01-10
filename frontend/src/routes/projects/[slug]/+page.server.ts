@@ -37,11 +37,14 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 				categories: project.categories || [],
 				is_featured: project.is_featured,
 				cover_image_url: project.cover_image_url || null,
-				media_urls: project.media_urls || []
+				media_urls: project.media_urls || [],
+				visibility: project.visibility || 'public',
+				is_draft: project.is_draft || false
 			},
 			media_refs: mediaRefs,
 			profile: project.profile || null,
-			fromView: fromView || null
+			fromView: fromView || null,
+			isAuthenticated: project.is_authenticated || false
 		};
 	} catch (err) {
 		if ((err as { status?: number }).status === 404) {

@@ -38,13 +38,16 @@ export const load: PageServerLoad = async ({ params, fetch, url }) => {
 				slides_url: talk.slides_url || null,
 				video_url: talk.video_url || null,
 				created: talk.created,
-				updated: talk.updated
+				updated: talk.updated,
+				visibility: talk.visibility || 'public',
+				is_draft: talk.is_draft || false
 			},
 			media_refs: mediaRefs,
 			profile: talk.profile || null,
 			prev_talk: talk.prev_talk || null,
 			next_talk: talk.next_talk || null,
-			fromView: fromView || null
+			fromView: fromView || null,
+			isAuthenticated: talk.is_authenticated || false
 		};
 	} catch (err) {
 		if ((err as { status?: number }).status === 404) {
