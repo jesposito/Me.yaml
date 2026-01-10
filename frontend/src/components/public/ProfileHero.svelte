@@ -9,7 +9,8 @@
 	let { profile }: Props = $props();
 
 	let contactLinks = $derived(profile?.contact_links || []);
-	let heroImageUrl = $derived(profile?.hero_image_url || profile?.hero_image || null);
+	let heroImageUrl = $derived(profile?.hero_image_url || null);
+	let avatarUrl = $derived((profile as unknown as Record<string, string>)?.avatar_url || null);
 </script>
 
 <header class="relative bg-gradient-to-br from-gray-900 to-gray-800 text-white">
@@ -26,10 +27,10 @@
 
 	<div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
 		<div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
-			{#if profile?.avatar}
+			{#if avatarUrl}
 				<img
-					src={profile.avatar}
-					alt={profile.name ? `${profile.name}'s profile photo` : 'Profile photo'}
+					src={avatarUrl}
+					alt={profile?.name ? `${profile.name}'s profile photo` : 'Profile photo'}
 					class="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white/20 shadow-xl object-cover"
 				/>
 			{:else if profile?.name}

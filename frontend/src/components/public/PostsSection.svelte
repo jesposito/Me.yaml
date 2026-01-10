@@ -21,13 +21,11 @@
 	const thumbSrc = (post: Post) =>
 		(post as unknown as Record<string, string>).cover_image_thumb_url ||
 		(post as unknown as Record<string, string>).cover_image_url ||
-		post.cover_image ||
 		'';
 
 	const largeSrc = (post: Post) =>
 		(post as unknown as Record<string, string>).cover_image_large_url ||
 		(post as unknown as Record<string, string>).cover_image_url ||
-		post.cover_image ||
 		'';
 </script>
 
