@@ -2,9 +2,13 @@
 	import type { Project } from '$lib/pocketbase';
 	import { truncate, parseMarkdown } from '$lib/utils';
 
-export let items: Project[];
-export let layout: string = 'grid-3';
-export let viewSlug: string = '';
+	interface Props {
+		items: Project[];
+		layout?: string;
+		viewSlug?: string;
+	}
+
+	let { items, layout = 'grid-3', viewSlug = '' }: Props = $props();
 
 const isLinkable = (project: Project) => {
 	const visibility = (project as unknown as Record<string, string>).visibility;
@@ -29,8 +33,8 @@ const projectHref = (project: Project) => {
 	}
 
 	// Split items for featured layout
-	$: featuredItem = items[0];
-	$: remainingItems = items.slice(1);
+	let featuredItem = $derived(items[0]);
+	let remainingItems = $derived(items.slice(1));
 
 	const thumbSrc = (project: Project) =>
 		(project as unknown as Record<string, string>).cover_image_thumb_url ||

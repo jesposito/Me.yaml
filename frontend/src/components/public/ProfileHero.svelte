@@ -2,10 +2,14 @@
 	import type { Profile } from '$lib/pocketbase';
 	import { parseMarkdown } from '$lib/utils';
 
-	export let profile: Profile | null;
+	interface Props {
+		profile: Profile | null;
+	}
 
-	$: contactLinks = profile?.contact_links || [];
-	$: heroImageUrl = profile?.hero_image_url || profile?.hero_image || null;
+	let { profile }: Props = $props();
+
+	let contactLinks = $derived(profile?.contact_links || []);
+	let heroImageUrl = $derived(profile?.hero_image_url || profile?.hero_image || null);
 </script>
 
 <header class="relative bg-gradient-to-br from-gray-900 to-gray-800 text-white">
@@ -16,7 +20,7 @@
 				alt=""
 				class="w-full h-full object-cover opacity-30"
 			/>
-			<div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent" />
+			<div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent"></div>
 		</div>
 	{/if}
 

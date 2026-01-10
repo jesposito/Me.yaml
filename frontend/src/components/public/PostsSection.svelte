@@ -2,9 +2,13 @@
 	import type { Post } from '$lib/pocketbase';
 	import { formatDate, truncate } from '$lib/utils';
 
-	export let items: Post[];
-	export let layout: string = 'grid-3';
-	export let viewSlug: string = '';
+	interface Props {
+		items: Post[];
+		layout?: string;
+		viewSlug?: string;
+	}
+
+	let { items, layout = 'grid-3', viewSlug = '' }: Props = $props();
 
 	// Build the post URL with optional from parameter for back navigation
 	function getPostUrl(slug: string): string {
