@@ -1,17 +1,37 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { adminSidebarOpen } from '$lib/stores';
+	import { collection } from '$lib/stores/demo';
+
+	// State for dynamically loaded facets
+	let facets: Array<Record<string, unknown>> = $state([]);
+	let facetsLoading = $state(true);
+
+	// Load facets on mount: Default View + 3 most recent
+	onMount(loadFacets);
+
+	async function loadFacets() {
+		facetsLoading = true;
+		try {
+			// Fetch views sorted by is_default (desc) then by updated (desc)
+			// This ensures default view comes first, then most recently updated
+			const result = await collection('views').getList(1, 4, {
+				sort: '-is_default,-updated'
+			});
+			facets = result.items;
+		} catch (err) {
+			// Silently fail - sidebar should still work without facets
+			facets = [];
+		} finally {
+			facetsLoading = false;
+		}
+	}
 
 const navSections = [
 	{
 		title: 'Dashboard',
 		items: [{ href: '/admin', label: 'Dashboard', icon: 'home' }]
-	},
-	{
-		title: 'Facets',
-		items: [
-			{ href: '/admin/views', label: 'All Facets', icon: 'eye' }
-		]
 	},
 	{
 		title: 'Your Information',
@@ -66,7 +86,81 @@ let isActive = $derived((href: string): boolean => {
 	aria-label="Admin navigation"
 >
 	<nav class="p-3 space-y-4" aria-label="Main menu">
-		{#each navSections as section}
+		<!-- Dashboard Section -->
+		<div class="space-y-2">
+			<p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">
+				Dashboard
+			</p>
+			<div class="space-y-1">
+				<a
+					href="/admin"
+					class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin')
+						? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+						: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
+					title={!$adminSidebarOpen ? 'Dashboard: Dashboard' : undefined}
+					aria-current={isActive('/admin') ? 'page' : undefined}
+				>
+					<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+					</svg>
+					<span class={$adminSidebarOpen ? '' : 'sr-only'}>Dashboard</span>
+				</a>
+			</div>
+		</div>
+
+		<!-- Dynamic Facets Section -->
+		<div class="space-y-2">
+			<p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">
+				Facets
+			</p>
+			<div class="space-y-1">
+				{#if facetsLoading}
+					<div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">
+						Loading...
+					</div>
+				{:else}
+					{#each facets as facet}
+						<a
+							href="/admin/views/{facet.id}"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive(`/admin/views/${facet.id}`)
+								? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+								: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
+							title={!$adminSidebarOpen ? `Facets: ${facet.name}${facet.is_default ? ' (Default)' : ''}` : undefined}
+							aria-current={isActive(`/admin/views/${facet.id}`) ? 'page' : undefined}
+						>
+							<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+								{#if facet.is_default}
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.184c.969 0 1.371 1.24.588 1.81l-3.39 2.463a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.39-2.462a1 1 0 00-1.176 0l-3.39 2.462c-.784.57-1.838-.196-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.04 9.394c-.783-.57-.38-1.81.588-1.81h4.184a1 1 0 00.95-.69l1.287-3.967z" />
+								{:else}
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+								{/if}
+							</svg>
+							<span class={$adminSidebarOpen ? '' : 'sr-only'}>
+								{facet.name}{#if facet.is_default} <span class="text-xs text-primary-600 dark:text-primary-400">(Default)</span>{/if}
+							</span>
+						</a>
+					{/each}
+				{/if}
+				<!-- All Facets link -->
+				<a
+					href="/admin/views"
+					class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin/views') && !$page.url.pathname.match(/\/admin\/views\/[^/]+$/)
+						? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+						: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
+					title={!$adminSidebarOpen ? 'Facets: All Facets' : undefined}
+					aria-current={isActive('/admin/views') && !$page.url.pathname.match(/\/admin\/views\/[^/]+$/) ? 'page' : undefined}
+				>
+					<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+					</svg>
+					<span class={$adminSidebarOpen ? '' : 'sr-only'}>All Facets</span>
+				</a>
+			</div>
+		</div>
+
+		<!-- Remaining Sections -->
+		{#each navSections.slice(1) as section}
 			<div class="space-y-2">
 				<p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">
 					{section.title}
