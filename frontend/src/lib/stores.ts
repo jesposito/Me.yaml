@@ -98,6 +98,79 @@ export const featuredProjects = derived(projects, ($projects) =>
 export const isAdmin = writable(false);
 export const adminSidebarOpen = writable(true);
 
+// Sidebar section collapse states with localStorage persistence
+export type SidebarSectionStates = Record<string, boolean>;
+
+function createSidebarSectionStatesStore() {
+	const STORAGE_KEY = 'sidebarSectionStates';
+	const { subscribe, set, update } = writable<SidebarSectionStates>({});
+
+	return {
+		subscribe,
+		initialize: () => {
+			if (typeof window === 'undefined') return;
+			try {
+				const saved = localStorage.getItem(STORAGE_KEY);
+				if (saved) {
+					const parsed = JSON.parse(saved);
+					if (typeof parsed === 'object' && parsed !== null) {
+						set(parsed);
+					}
+				}
+			} catch {
+				// Invalid JSON, ignore and use defaults
+			}
+		},
+		toggle: (sectionId: string) => {
+			update((states) => {
+				const newStates = { ...states, [sectionId]: !states[sectionId] };
+				if (typeof window !== 'undefined') {
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(newStates));
+				}
+				return newStates;
+			});
+		},
+		setExpanded: (sectionId: string, expanded: boolean) => {
+			update((states) => {
+				const newStates = { ...states, [sectionId]: expanded };
+				if (typeof window !== 'undefined') {
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(newStates));
+				}
+				return newStates;
+			});
+		},
+		isExpanded: (states: SidebarSectionStates, sectionId: string, defaultExpanded = true): boolean => {
+			return states[sectionId] ?? defaultExpanded;
+		},
+		expandAll: (sectionIds: string[]) => {
+			update((states) => {
+				const newStates = { ...states };
+				for (const id of sectionIds) {
+					newStates[id] = true;
+				}
+				if (typeof window !== 'undefined') {
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(newStates));
+				}
+				return newStates;
+			});
+		},
+		collapseAll: (sectionIds: string[]) => {
+			update((states) => {
+				const newStates = { ...states };
+				for (const id of sectionIds) {
+					newStates[id] = false;
+				}
+				if (typeof window !== 'undefined') {
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(newStates));
+				}
+				return newStates;
+			});
+		}
+	};
+}
+
+export const sidebarSectionStates = createSidebarSectionStatesStore();
+
 // Current view context (for view pages)
 export interface ViewContext {
 	id: string;
