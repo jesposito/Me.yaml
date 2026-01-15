@@ -7,6 +7,7 @@
 	import { pb, type ViewSection, type Profile, type SectionWidth, VALID_LAYOUTS, VALID_WIDTHS, getValidWidthsForLayout, isWidthValidForLayout } from '$lib/pocketbase';
 	import { collection } from '$lib/stores/demo';
 	import { toasts } from '$lib/stores';
+	import { icon } from '$lib/icons';
 	import { dndzone } from 'svelte-dnd-action';
 	import { flip } from 'svelte/animate';
 	import ViewPreview from '$components/admin/ViewPreview.svelte';
@@ -50,6 +51,14 @@
 	let isActive = $state(true);
 	let isDefault = $state(false);
 	let accentColor: AccentColor | null = $state(null); // null = use global profile setting
+
+	// Share token generation state (for after view creation)
+	let generateTokenAfterCreate = $state(false);
+	let newTokenName = $state('');
+	let newTokenExpires = $state('');
+	let newTokenMaxUses = $state(0);
+	let createdTokenUrl: string | null = $state(null);
+	let generatingToken = $state(false);
 
 	// Sections configuration with layout and width support (itemConfig empty for new views)
 	let sections: Record<string, { enabled: boolean; items: string[]; expanded: boolean; layout: string; width: SectionWidth; itemConfig: Record<string, { overrides?: Record<string, string | string[]> }> }> = $state({});
@@ -237,6 +246,59 @@
 		updateSections();
 	}
 
+	// Token generation functions
+	function resetTokenForm() {
+		newTokenName = '';
+		newTokenExpires = '';
+		newTokenMaxUses = 0;
+		generateTokenAfterCreate = false;
+	}
+
+	function copyShareUrl(text: string) {
+		navigator.clipboard.writeText(text);
+		toasts.add('success', 'Copied to clipboard');
+	}
+
+	function dismissCreatedToken() {
+		createdTokenUrl = null;
+	}
+
+	async function generateShareToken(viewId: string) {
+		generatingToken = true;
+		try {
+			const response = await fetch('/api/share/generate', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({
+					view_id: viewId,
+					name: newTokenName || undefined,
+					expires_at: newTokenExpires || undefined,
+					max_uses: newTokenMaxUses || 0
+				})
+			});
+
+			if (!response.ok) {
+				const data = await response.json();
+				throw new Error(data.error || 'Failed to create token');
+			}
+
+			const data = await response.json();
+
+			// Store the URL to show
+			createdTokenUrl = `${window.location.origin}/s/${data.token}`;
+
+			toasts.add('success', 'Share link created!');
+			resetTokenForm();
+		} catch (err) {
+			toasts.add('error', err instanceof Error ? err.message : 'Failed to create share link');
+		} finally {
+			generatingToken = false;
+		}
+	}
+
 	async function handleSubmit() {
 		if (!name.trim()) {
 			toasts.add('error', 'Name is required');
@@ -305,7 +367,15 @@
 			}
 
 			toasts.add('success', 'View created successfully');
-			goto('/admin/views');
+
+			// Generate share token if requested
+			if (generateTokenAfterCreate && (visibility === 'unlisted' || visibility === 'private')) {
+				await generateShareToken(newView.id);
+				// Redirect to edit page so user can see/copy the token
+				goto(`/admin/views/${newView.id}`);
+			} else {
+				goto('/admin/views');
+			}
 		} catch (err) {
 			console.error('Failed to create view:', err);
 			const message = err instanceof Error ? err.message : 'Failed to create view';
@@ -444,6 +514,85 @@
 							autocomplete="new-password"
 						/>
 						<p class="text-xs text-gray-500 mt-1">Visitors will need this password to access this view</p>
+					</div>
+				{/if}
+
+				<!-- Inline Share Token Generation Panel -->
+				{#if visibility === 'unlisted' || visibility === 'private'}
+					<div class="mt-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+						<div class="flex items-center gap-2 mb-3">
+							{@html icon('link')}
+							<h3 class="font-medium text-gray-900 dark:text-white">Generate Share Link</h3>
+						</div>
+						<p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+							{visibility === 'unlisted'
+								? 'This view will be unlisted — only people with a share link can access it.'
+								: 'This view will be private — generate a share link for specific access.'}
+						</p>
+
+						<!-- Token Generation Form -->
+						<div class="space-y-3 p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+							<label class="flex items-start gap-3">
+								<input
+									type="checkbox"
+									bind:checked={generateTokenAfterCreate}
+									class="mt-1 w-4 h-4 text-primary-600 rounded border-gray-300"
+								/>
+								<div>
+									<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Generate share link when creating this view</span>
+									<p class="text-xs text-gray-500 mt-0.5">You'll be redirected to the view editor to copy the link</p>
+								</div>
+							</label>
+
+							{#if generateTokenAfterCreate}
+								<div class="pt-2 space-y-3 border-t border-gray-200 dark:border-gray-700">
+									<div>
+										<label for="token_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+											Link Name (optional)
+										</label>
+										<input
+											type="text"
+											id="token_name"
+											bind:value={newTokenName}
+											placeholder="e.g., Sent to Company X"
+											class="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-600 text-sm"
+										/>
+										<p class="text-xs text-gray-500 mt-1">A label to help you remember who this link was shared with.</p>
+									</div>
+
+									<div class="grid grid-cols-2 gap-3">
+										<div>
+											<label for="token_expires" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												Expiration
+											</label>
+											<input
+												type="datetime-local"
+												id="token_expires"
+												bind:value={newTokenExpires}
+												class="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-600 text-sm"
+											/>
+										</div>
+										<div>
+											<label for="token_max_uses" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+												Max Uses
+											</label>
+											<input
+												type="number"
+												id="token_max_uses"
+												bind:value={newTokenMaxUses}
+												min="0"
+												placeholder="0 = unlimited"
+												class="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-600 text-sm"
+											/>
+										</div>
+									</div>
+								</div>
+							{/if}
+						</div>
+
+						<p class="text-xs text-gray-500 mt-3">
+							{@html icon('info')} You can also generate additional share links from the view editor after creation.
+						</p>
 					</div>
 				{/if}
 			</div>
