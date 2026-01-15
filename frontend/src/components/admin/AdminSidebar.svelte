@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { adminSidebarOpen, sidebarSectionStates } from '$lib/stores';
 	import { collection } from '$lib/stores/demo';
@@ -36,6 +37,15 @@
 	onMount(() => {
 		sidebarSectionStates.initialize();
 		loadFacets();
+	});
+
+	// Refresh facets after navigation (e.g., after creating/editing/deleting a view)
+	afterNavigate(({ from }) => {
+		// Refresh if coming from a views-related page or if facets failed to load initially
+		const fromPath = from?.url.pathname || '';
+		if (fromPath.includes('/admin/views') || facetsError) {
+			loadFacets();
+		}
 	});
 
 	async function loadFacets() {
