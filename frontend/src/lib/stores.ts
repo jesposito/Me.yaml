@@ -123,7 +123,9 @@ function createSidebarSectionStatesStore() {
 		},
 		toggle: (sectionId: string) => {
 			update((states) => {
-				const newStates = { ...states, [sectionId]: !states[sectionId] };
+				// Use the same default as isExpanded (true = expanded)
+				const currentState = states[sectionId] ?? true;
+				const newStates = { ...states, [sectionId]: !currentState };
 				if (typeof window !== 'undefined') {
 					localStorage.setItem(STORAGE_KEY, JSON.stringify(newStates));
 				}

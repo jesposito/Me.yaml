@@ -3,9 +3,7 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { adminSidebarOpen, sidebarSectionStates } from '$lib/stores';
-	import { collection, demoMode } from '$lib/stores/demo';
-	import { pb } from '$lib/pocketbase';
-	import { get } from 'svelte/store';
+	import { collection } from '$lib/stores/demo';
 
 	// State for dynamically loaded facets
 	let facets: Array<Record<string, unknown>> = $state([]);
@@ -53,30 +51,15 @@
 		facetsLoading = true;
 		facetsError = false;
 		try {
-			// Ensure auth is available before making the request
-			if (!pb.authStore.isValid) {
-				console.warn('[Sidebar] Auth not valid, skipping facets load');
-				facets = [];
-				return;
-			}
-
-			// Log demo mode status for debugging
-			const isDemoMode = get(demoMode);
-			const collectionName = isDemoMode ? 'demo_views' : 'views';
-			console.log('[Sidebar] Loading facets from collection:', collectionName, '(demoMode:', isDemoMode, ')');
-
 			// Fetch views sorted by is_default (desc) then by updated (desc)
 			// This ensures default view comes first, then most recently updated
+			// Note: Admin layout already validates auth before rendering sidebar
 			const result = await collection('views').getList(1, 4, {
 				sort: '-is_default,-updated'
 			});
 
-			// Defensive: ensure items is an array
-			const items = result?.items ?? [];
-			console.log('[Sidebar] Loaded', items.length, 'facets:', items.map(v => v.name));
-			facets = items;
+			facets = result?.items ?? [];
 		} catch (err) {
-			// Log error for debugging but don't crash the sidebar
 			console.error('[Sidebar] Failed to load facets:', err);
 			facetsError = true;
 			facets = [];
