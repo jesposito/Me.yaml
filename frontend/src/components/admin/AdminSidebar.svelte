@@ -4,11 +4,17 @@
 
 const navSections = [
 	{
-		title: 'Overview',
+		title: 'Dashboard',
 		items: [{ href: '/admin', label: 'Dashboard', icon: 'home' }]
 	},
 	{
-		title: 'All About You',
+		title: 'Facets',
+		items: [
+			{ href: '/admin/views', label: 'All Facets', icon: 'eye' }
+		]
+	},
+	{
+		title: 'Your Information',
 		items: [
 			{ href: '/admin/profile', label: 'Profile', icon: 'user' },
 			{ href: '/admin/contacts', label: 'Contact Methods', icon: 'mail' },
@@ -18,26 +24,22 @@ const navSections = [
 			{ href: '/admin/certifications', label: 'Certifications', icon: 'badge' },
 			{ href: '/admin/awards', label: 'Awards', icon: 'star' },
 			{ href: '/admin/skills', label: 'Skills', icon: 'chip' },
+			{ href: '/admin/import', label: 'Import & AI', icon: 'sparkle' }
+		]
+	},
+	{
+		title: 'Your Voice',
+		items: [
 			{ href: '/admin/posts', label: 'Posts', icon: 'document' },
 			{ href: '/admin/talks', label: 'Talks', icon: 'presentation' }
 		]
 	},
 	{
-		title: 'Faceted Views & Sharing',
+		title: 'Settings',
 		items: [
-			{ href: '/admin/views', label: 'Views', icon: 'eye' },
-			{ href: '/admin/tokens', label: 'Tokens', icon: 'link' }
-		]
-	},
-	{
-		title: 'AI & Imports',
-		items: [{ href: '/admin/import', label: 'Import & AI', icon: 'sparkle' }]
-	},
-	{
-		title: 'System',
-		items: [
-			{ href: '/admin/media', label: 'Media', icon: 'image' },
-			{ href: '/admin/settings', label: 'Settings', icon: 'cog' }
+			{ href: '/admin/settings', label: 'General', icon: 'cog' },
+			{ href: '/admin/media', label: 'Media Library', icon: 'image' },
+			{ href: '/admin/tokens', label: 'Share Tokens', icon: 'link' }
 		]
 	}
 ];
