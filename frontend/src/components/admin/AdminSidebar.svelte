@@ -66,12 +66,12 @@
 		facetsLoading = true;
 		facetsError = false;
 		try {
-			// Fetch views sorted by is_default (desc) then by updated (desc)
-			// This ensures default view comes first, then most recently updated
+			// Fetch views sorted by is_default (desc) then by created (desc)
+			// This ensures default view comes first, then most recently created
 			// Note: Admin layout already validates auth before rendering sidebar
 			// Use unique $cancelKey to prevent auto-cancellation conflicts with other views requests
 			const result = await collection('views').getList(1, 4, {
-				sort: '-is_default,-updated',
+				sort: '-is_default,-created',
 				$cancelKey: 'sidebar-facets-load'
 			});
 
