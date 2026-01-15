@@ -38,7 +38,8 @@
 	// Load facets on mount: Default View + 3 most recent
 	onMount(() => {
 		sidebarSectionStates.initialize();
-		loadFacets();
+		// Small delay to avoid race with page-level data loading
+		scheduleFacetsLoad();
 	});
 
 	// Refresh facets after navigation (e.g., after creating/editing/deleting a view)
@@ -46,9 +47,20 @@
 		// Refresh if coming from a views-related page or if facets failed to load initially
 		const fromPath = from?.url.pathname || '';
 		if (fromPath.includes('/admin/views') || facetsError) {
-			loadFacets();
+			scheduleFacetsLoad();
 		}
 	});
+
+	// Debounced load to prevent rapid successive calls
+	function scheduleFacetsLoad() {
+		if (loadFacetsTimer) {
+			clearTimeout(loadFacetsTimer);
+		}
+		loadFacetsTimer = setTimeout(() => {
+			loadFacetsTimer = null;
+			loadFacets();
+		}, 100);
+	}
 
 	async function loadFacets() {
 		facetsLoading = true;
