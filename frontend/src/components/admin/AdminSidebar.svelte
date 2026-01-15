@@ -3,8 +3,9 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { adminSidebarOpen, sidebarSectionStates } from '$lib/stores';
-	import { collection } from '$lib/stores/demo';
+	import { collection, demoMode } from '$lib/stores/demo';
 	import { pb } from '$lib/pocketbase';
+	import { get } from 'svelte/store';
 
 	// State for dynamically loaded facets
 	let facets: Array<Record<string, unknown>> = $state([]);
@@ -59,6 +60,11 @@
 				return;
 			}
 
+			// Log demo mode status for debugging
+			const isDemoMode = get(demoMode);
+			const collectionName = isDemoMode ? 'demo_views' : 'views';
+			console.log('[Sidebar] Loading facets from collection:', collectionName, '(demoMode:', isDemoMode, ')');
+
 			// Fetch views sorted by is_default (desc) then by updated (desc)
 			// This ensures default view comes first, then most recently updated
 			const result = await collection('views').getList(1, 4, {
@@ -66,7 +72,9 @@
 			});
 
 			// Defensive: ensure items is an array
-			facets = result?.items ?? [];
+			const items = result?.items ?? [];
+			console.log('[Sidebar] Loaded', items.length, 'facets:', items.map(v => v.name));
+			facets = items;
 		} catch (err) {
 			// Log error for debugging but don't crash the sidebar
 			console.error('[Sidebar] Failed to load facets:', err);
