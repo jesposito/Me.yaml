@@ -209,7 +209,7 @@ let isActive = $derived((href: string): boolean => {
 									{/if}
 								</svg>
 								<span class="flex items-center gap-1.5 {$adminSidebarOpen ? '' : 'sr-only'}">
-									<span class="truncate">{facet.name}</span>
+									<span class="truncate" title={facet.name as string}>{facet.name}</span>
 									{#if facet.is_default}
 										<span class="text-xs text-primary-600 dark:text-primary-400">(Default)</span>
 									{/if}
