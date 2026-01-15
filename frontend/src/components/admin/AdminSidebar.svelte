@@ -10,6 +10,9 @@
 	let facetsLoading = $state(true);
 	let facetsError = $state(false);
 
+	// Debounce timer to prevent rapid successive loadFacets calls
+	let loadFacetsTimer: ReturnType<typeof setTimeout> | null = null;
+
 	// Section IDs for collapsible sections
 	const SECTION_IDS = {
 		dashboard: 'sidebar-dashboard',
@@ -54,8 +57,10 @@
 			// Fetch views sorted by is_default (desc) then by updated (desc)
 			// This ensures default view comes first, then most recently updated
 			// Note: Admin layout already validates auth before rendering sidebar
+			// Use unique $cancelKey to prevent auto-cancellation conflicts with other views requests
 			const result = await collection('views').getList(1, 4, {
-				sort: '-is_default,-updated'
+				sort: '-is_default,-updated',
+				$cancelKey: 'sidebar-facets-load'
 			});
 
 			facets = result?.items ?? [];
