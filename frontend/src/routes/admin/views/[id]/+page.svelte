@@ -125,6 +125,12 @@
 	let newTokenMaxUses = $state(0);
 	let createdTokenUrl: string | null = $state(null);
 
+	// Homepage visibility settings (only shown for default view)
+	let siteSettingsLoading = $state(true);
+	let siteSettingsSaving = $state(false);
+	let homepageEnabled = $state(true);
+	let landingPageMessage = $state('This profile is being set up.');
+
 
 	// Simple pattern - admin layout handles auth
 	onMount(async () => {
@@ -138,7 +144,8 @@
 			loadSectionItems(),
 			loadProfile(),
 			checkAIPrintStatus(),
-			loadViewTokens()
+			loadViewTokens(),
+			loadSiteSettings()
 		]);
 	});
 
@@ -159,6 +166,54 @@
 		} catch (err) {
 			console.error('Failed to load profile:', err);
 			// Profile is optional for preview, don't show error
+		}
+	}
+
+	// Homepage visibility settings functions (for default view)
+	async function loadSiteSettings() {
+		try {
+			const response = await fetch('/api/site-settings');
+			if (response.ok) {
+				const data = await response.json();
+				homepageEnabled = data.homepage_enabled !== false;
+				landingPageMessage = data.landing_page_message || '';
+			}
+		} catch (err) {
+			console.error('Failed to load site settings:', err);
+		} finally {
+			siteSettingsLoading = false;
+		}
+	}
+
+	async function saveSiteSettings() {
+		siteSettingsSaving = true;
+		try {
+			const response = await fetch('/api/site-settings', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: pb.authStore.token || ''
+				},
+				body: JSON.stringify({
+					homepage_enabled: homepageEnabled,
+					landing_page_message: landingPageMessage
+				})
+			});
+
+			const result = await response.json();
+			if (!response.ok) {
+				toasts.add('error', result.error || 'Failed to save homepage settings');
+				return;
+			}
+
+			homepageEnabled = result.homepage_enabled !== false;
+			landingPageMessage = result.landing_page_message || '';
+			toasts.add('success', 'Homepage visibility updated');
+		} catch (err) {
+			console.error('Failed to save site settings:', err);
+			toasts.add('error', 'Failed to save homepage settings');
+		} finally {
+			siteSettingsSaving = false;
 		}
 	}
 
@@ -933,6 +988,60 @@
 			<!-- Editor Pane -->
 			<div class="editor-pane">
 		<form onsubmit={preventDefault(handleSubmit)} class="space-y-6">
+			<!-- Homepage Visibility (only for default view) -->
+			{#if isDefault}
+				<div class="card p-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
+					<h2 class="text-lg font-semibold text-primary-900 dark:text-primary-100 mb-2">Homepage Visibility</h2>
+					<p class="text-sm text-primary-700 dark:text-primary-300 mb-4">
+						Control whether your public homepage at <code class="px-1 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">/</code> is visible to visitors.
+					</p>
+
+					<div class="flex flex-col gap-4">
+						<div class="flex items-center justify-between gap-4">
+							<div>
+								<p class="text-sm font-medium text-primary-900 dark:text-primary-100">
+									Public homepage {homepageEnabled ? 'ON' : 'OFF'}
+								</p>
+								<p class="text-sm text-primary-700 dark:text-primary-300">
+									When off, <code class="px-1 py-0.5 bg-primary-100 dark:bg-primary-800 rounded text-xs">/</code>, <code class="px-1 py-0.5 bg-primary-100 dark:bg-primary-800 rounded text-xs">/posts</code>, and <code class="px-1 py-0.5 bg-primary-100 dark:bg-primary-800 rounded text-xs">/talks</code> show a private landing message.
+								</p>
+							</div>
+							<label class="inline-flex items-center cursor-pointer">
+								<input
+									type="checkbox"
+									class="sr-only peer"
+									bind:checked={homepageEnabled}
+									disabled={siteSettingsLoading || siteSettingsSaving}
+								/>
+								<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 dark:peer-focus:ring-primary-400 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 relative"></div>
+							</label>
+						</div>
+
+						<div>
+							<label class="label text-primary-800 dark:text-primary-200" for="landing-message">Landing message (shown when homepage is off)</label>
+							<textarea
+								id="landing-message"
+								class="input h-20"
+								bind:value={landingPageMessage}
+								placeholder="This profile is being set up."
+								disabled={siteSettingsLoading || siteSettingsSaving}
+							></textarea>
+						</div>
+
+						<div class="flex justify-end">
+							<button
+								type="button"
+								class="btn btn-primary"
+								onclick={saveSiteSettings}
+								disabled={siteSettingsSaving || siteSettingsLoading}
+							>
+								{siteSettingsSaving ? 'Saving...' : 'Save Homepage Settings'}
+							</button>
+						</div>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Basic Info -->
 			<div class="card p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h2>
