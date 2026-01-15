@@ -176,6 +176,20 @@ let isActive = $derived((href: string): boolean => {
 						<div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">
 							Loading...
 						</div>
+					{:else if facets.length === 0}
+						<!-- Empty state -->
+						<div class="px-3 py-2 {$adminSidebarOpen ? '' : 'sr-only'}">
+							<p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Create your first facet to showcase different versions of your profile.</p>
+							<a
+								href="/admin/views/new"
+								class="inline-flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+							>
+								<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+								</svg>
+								New Facet
+							</a>
+						</div>
 					{:else}
 						{#each facets as facet}
 							<a
@@ -211,19 +225,19 @@ let isActive = $derived((href: string): boolean => {
 							</a>
 						{/each}
 					{/if}
-					<!-- All Facets link -->
+					<!-- View All Facets link -->
 					<a
 						href="/admin/views"
 						class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin/views') && !$page.url.pathname.match(/\/admin\/views\/[^/]+$/)
 							? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
 							: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
-						title={!$adminSidebarOpen ? 'Facets: All Facets' : undefined}
+						title={!$adminSidebarOpen ? 'Facets: View All Facets' : undefined}
 						aria-current={isActive('/admin/views') && !$page.url.pathname.match(/\/admin\/views\/[^/]+$/) ? 'page' : undefined}
 					>
 						<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
 						</svg>
-						<span class={$adminSidebarOpen ? '' : 'sr-only'}>All Facets</span>
+						<span class={$adminSidebarOpen ? '' : 'sr-only'}>View All Facets</span>
 					</a>
 				</div>
 			{/if}
