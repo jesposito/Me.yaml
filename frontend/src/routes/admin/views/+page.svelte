@@ -15,10 +15,18 @@
 	async function loadViews() {
 		loading = true;
 		try {
+			// Sort by id only - is_default field may not exist in older schemas
 			const result = await collection('views').getList(1, 50, {
-				sort: '-is_default,-id'
+				sort: '-id'
 			});
-			views = result.items;
+			// Reorder to put the default view first
+			const items = result.items;
+			const defaultIndex = items.findIndex((v) => v.is_default);
+			if (defaultIndex > 0) {
+				const [defaultView] = items.splice(defaultIndex, 1);
+				items.unshift(defaultView);
+			}
+			views = items;
 		} catch (err) {
 			console.error('Failed to load views:', err);
 			toasts.add('error', 'Failed to load views');

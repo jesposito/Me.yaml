@@ -66,16 +66,24 @@
 		facetsLoading = true;
 		facetsError = false;
 		try {
-			// Fetch views sorted by is_default (desc) then by created (desc)
-			// This ensures default view comes first, then most recently created
-			// Note: Admin layout already validates auth before rendering sidebar
+			// Fetch views sorted by created date (desc) - most recent first
+			// Note: We avoid sorting by is_default server-side because the field may not exist
+			// in older database schemas. Instead, we reorder client-side to put the default first.
+			// Admin layout already validates auth before rendering sidebar.
 			// Use unique $cancelKey to prevent auto-cancellation conflicts with other views requests
 			const result = await collection('views').getList(1, 4, {
-				sort: '-is_default,-created',
+				sort: '-created',
 				$cancelKey: 'sidebar-facets-load'
 			});
 
-			facets = result?.items ?? [];
+			// Reorder to put the default view first (if it exists)
+			const items = result?.items ?? [];
+			const defaultIndex = items.findIndex((v) => v.is_default);
+			if (defaultIndex > 0) {
+				const [defaultView] = items.splice(defaultIndex, 1);
+				items.unshift(defaultView);
+			}
+			facets = items;
 		} catch (err) {
 			console.error('[Sidebar] Failed to load facets:', err);
 			facetsError = true;
