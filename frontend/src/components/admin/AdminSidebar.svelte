@@ -3,10 +3,12 @@
 	import { page } from '$app/stores';
 	import { adminSidebarOpen, sidebarSectionStates } from '$lib/stores';
 	import { collection } from '$lib/stores/demo';
+	import { pb } from '$lib/pocketbase';
 
 	// State for dynamically loaded facets
 	let facets: Array<Record<string, unknown>> = $state([]);
 	let facetsLoading = $state(true);
+	let facetsError = $state(false);
 
 	// Section IDs for collapsible sections
 	const SECTION_IDS = {
@@ -38,15 +40,27 @@
 
 	async function loadFacets() {
 		facetsLoading = true;
+		facetsError = false;
 		try {
+			// Ensure auth is available before making the request
+			if (!pb.authStore.isValid) {
+				console.warn('[Sidebar] Auth not valid, skipping facets load');
+				facets = [];
+				return;
+			}
+
 			// Fetch views sorted by is_default (desc) then by updated (desc)
 			// This ensures default view comes first, then most recently updated
 			const result = await collection('views').getList(1, 4, {
 				sort: '-is_default,-updated'
 			});
-			facets = result.items;
+
+			// Defensive: ensure items is an array
+			facets = result?.items ?? [];
 		} catch (err) {
-			// Silently fail - sidebar should still work without facets
+			// Log error for debugging but don't crash the sidebar
+			console.error('[Sidebar] Failed to load facets:', err);
+			facetsError = true;
 			facets = [];
 		} finally {
 			facetsLoading = false;
@@ -175,6 +189,21 @@ let isActive = $derived((href: string): boolean => {
 					{#if facetsLoading}
 						<div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">
 							Loading...
+						</div>
+					{:else if facetsError}
+						<!-- Error state with retry -->
+						<div class="px-3 py-2 {$adminSidebarOpen ? '' : 'sr-only'}">
+							<p class="text-sm text-red-500 dark:text-red-400 mb-2">Unable to load facets.</p>
+							<button
+								type="button"
+								onclick={() => loadFacets()}
+								class="inline-flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
+							>
+								<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+								</svg>
+								Retry
+							</button>
 						</div>
 					{:else if facets.length === 0}
 						<!-- Empty state -->
