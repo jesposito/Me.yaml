@@ -263,10 +263,10 @@ let isActive = $derived((href: string): boolean => {
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
 									{/if}
 								</svg>
-								<span class="flex items-center gap-1.5 {$adminSidebarOpen ? '' : 'sr-only'}">
+								<span class="flex items-center gap-1.5 min-w-0 overflow-hidden {$adminSidebarOpen ? '' : 'sr-only'}">
 									<span class="truncate" title={facet.name as string}>{facet.name}</span>
 									{#if facet.is_default}
-										<span class="text-xs text-primary-600 dark:text-primary-400">(Default)</span>
+										<span class="text-xs text-primary-600 dark:text-primary-400 shrink-0">(Default)</span>
 									{/if}
 									<!-- Visibility indicator -->
 									{#if facet.visibility === 'public'}
