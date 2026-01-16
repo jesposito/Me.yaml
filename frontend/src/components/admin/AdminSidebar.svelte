@@ -248,7 +248,7 @@ let isActive = $derived((href: string): boolean => {
 						<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
 						</svg>
-						<span class={$adminSidebarOpen ? '' : 'sr-only'}>+ New Facet</span>
+						<span class={$adminSidebarOpen ? '' : 'sr-only'}>New Facet</span>
 					</a>
 			</div>
 		</div>
