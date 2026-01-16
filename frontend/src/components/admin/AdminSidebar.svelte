@@ -278,12 +278,13 @@ let isActive = $derived((href: string): boolean => {
 								class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive(`/admin/views/${facet.id}`)
 									? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
 									: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
-								title={!$adminSidebarOpen ? `Facets: ${facet.name}${facet.is_default ? ' (Default)' : ''}` : undefined}
+								title={!$adminSidebarOpen ? `Facets: ${facet.is_default ? 'Homepage (/)' : facet.name}` : undefined}
 								aria-current={isActive(`/admin/views/${facet.id}`) ? 'page' : undefined}
 							>
 								<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 									{#if facet.is_default}
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.184c.969 0 1.371 1.24.588 1.81l-3.39 2.463a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.39-2.462a1 1 0 00-1.176 0l-3.39 2.462c-.784.57-1.838-.196-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.04 9.394c-.783-.57-.38-1.81.588-1.81h4.184a1 1 0 00.95-.69l1.287-3.967z" />
+										<!-- Home icon for default view (represents "/" route) -->
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
 									{:else}
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -292,7 +293,7 @@ let isActive = $derived((href: string): boolean => {
 								<span class="flex items-center gap-1.5 min-w-0 overflow-hidden {$adminSidebarOpen ? '' : 'sr-only'}">
 									<span class="truncate" title={facet.name as string}>{facet.name}</span>
 									{#if facet.is_default}
-										<span class="text-xs text-primary-600 dark:text-primary-400 shrink-0">(Default)</span>
+										<span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">/</span>
 									{/if}
 									<!-- Visibility indicator -->
 									{#if facet.visibility === 'public'}

@@ -49,7 +49,6 @@
 	let ctaText = $state('');
 	let ctaUrl = $state('');
 	let isActive = $state(true);
-	let isDefault = $state(false);
 	let accentColor: AccentColor | null = $state(null); // null = use global profile setting
 
 	// Share token generation state (for after view creation)
@@ -349,22 +348,12 @@
 				cta_text: ctaText.trim() || null,
 				cta_url: ctaUrl.trim() || null,
 				is_active: isActive,
-				is_default: isDefault,
+				is_default: false, // New views are never default - only the system-created Default view is
 				accent_color: accentColor || null,
 				sections: sectionsData
 			};
 
 			const newView = await collection('views').create(data);
-
-			// If setting as default, clear other defaults
-			if (isDefault) {
-				const currentDefaults = await collection('views').getList(1, 100, {
-					filter: `is_default = true && id != "${newView.id}"`
-				});
-				for (const v of currentDefaults.items) {
-					await collection('views').update(v.id, { is_default: false });
-				}
-			}
 
 			toasts.add('success', 'View created successfully');
 
@@ -728,18 +717,7 @@
 						</div>
 					</label>
 
-					<label class="flex items-center gap-3">
-						<input
-							type="checkbox"
-							bind:checked={isDefault}
-							class="w-4 h-4 text-primary-600 rounded border-gray-300"
-						/>
-						<div>
-							<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Default View</span>
-							<p class="text-xs text-gray-500">Show this view on the homepage (/)</p>
-						</div>
-					</label>
-				</div>
+					</div>
 			</div>
 
 			<!-- Sections -->

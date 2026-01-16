@@ -783,16 +783,6 @@
 			await collection('views').update(viewId, formData);
 			heroImageFile = null;
 
-			if (isDefault && !originalIsDefault) {
-				const currentDefaults = await collection('views').getFullList({
-					filter: `is_default = true && id != "${viewId}"`
-				});
-				for (const v of currentDefaults) {
-					await collection('views').update(v.id, { is_default: false });
-				}
-			}
-			originalIsDefault = isDefault;
-
 			await enableItemsForView(sectionsData);
 
 			toasts.add('success', 'View updated successfully');
@@ -1517,17 +1507,18 @@
 						</div>
 					</label>
 
-					<label class="flex items-center gap-3">
-						<input
-							type="checkbox"
-							bind:checked={isDefault}
-							class="w-4 h-4 text-primary-600 rounded border-gray-300"
-						/>
+					{#if isDefault}
+					<!-- Show read-only indicator for the default view -->
+					<div class="flex items-center gap-3 opacity-75">
+						<svg class="w-5 h-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+						</svg>
 						<div>
-							<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Default View</span>
-							<p class="text-xs text-gray-500">Show this view on the homepage (/)</p>
+							<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Homepage View</span>
+							<p class="text-xs text-gray-500">This is the default view shown at /</p>
 						</div>
-					</label>
+					</div>
+				{/if}
 				</div>
 			</div>
 
