@@ -128,7 +128,7 @@
 	// Simple pattern - admin layout handles auth
 	onMount(async () => {
 		if (!viewId) {
-			toasts.add('error', 'Invalid view ID');
+			toasts.add('error', 'Invalid facet ID');
 			goto('/admin/views');
 			return;
 		}
@@ -482,7 +482,7 @@
 			initializeSections(view.sections);
 		} catch (err) {
 			console.error('Failed to load view:', err);
-			toasts.add('error', 'Failed to load view');
+			toasts.add('error', 'Failed to load facet');
 			goto('/admin/views');
 		} finally {
 			loading = false;
@@ -723,10 +723,10 @@
 
 			await enableItemsForView(sectionsData);
 
-			toasts.add('success', 'View updated successfully');
+			toasts.add('success', 'Facet updated successfully');
 		} catch (err) {
 			console.error('Failed to save view:', err);
-			toasts.add('error', 'Failed to save view');
+			toasts.add('error', 'Failed to save facet');
 		} finally {
 			saving = false;
 		}
@@ -859,24 +859,24 @@
 </script>
 
 <svelte:head>
-	<title>Edit View | Facet</title>
+	<title>Edit Facet | Facet</title>
 </svelte:head>
 
 <div class="view-editor-container">
 	{#if loading}
 		<div class="card p-8 text-center max-w-4xl mx-auto">
-			<div class="animate-pulse">Loading view...</div>
+			<div class="animate-pulse">Loading facet...</div>
 		</div>
 	{:else}
 		<!-- Header -->
 		<div class="flex items-center justify-between mb-6 px-4">
 			<div class="flex items-center gap-4">
-				<a href="/admin/views" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300" aria-label="Back to views">
+				<a href="/admin/views" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300" aria-label="Back to facets">
 					<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 					</svg>
 				</a>
-				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Edit View</h1>
+				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Edit Facet</h1>
 			</div>
 			<div class="flex items-center gap-2">
 				<!-- Preview Toggle -->

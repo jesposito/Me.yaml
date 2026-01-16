@@ -9,6 +9,7 @@
 	let facets: Array<Record<string, unknown>> = $state([]);
 	let facetsLoading = $state(true);
 	let facetsError = $state(false);
+	let facetsTotalCount = $state(0); // Track total facets for "View more" link
 
 	// Debounce timer to prevent rapid successive loadFacets calls
 	let loadFacetsTimer: ReturnType<typeof setTimeout> | null = null;
@@ -73,10 +74,12 @@
 				$cancelKey: 'sidebar-facets-load'
 			});
 			facets = recentResult?.items ?? [];
+			facetsTotalCount = recentResult?.totalItems ?? 0;
 		} catch (err) {
 			console.error('[Sidebar] Failed to load facets:', err);
 			facetsError = true;
 			facets = [];
+			facetsTotalCount = 0;
 		} finally {
 			facetsLoading = false;
 		}
@@ -139,7 +142,7 @@ let isActive = $derived((href: string): boolean => {
 	aria-label="Admin navigation"
 >
 	<nav class="p-3 space-y-4" aria-label="Main menu">
-		<!-- Dashboard - always visible -->
+		<!-- Dashboard and Profile - always visible -->
 		<div class="space-y-1">
 			<a
 				href="/admin"
@@ -154,29 +157,25 @@ let isActive = $derived((href: string): boolean => {
 				</svg>
 				<span class={$adminSidebarOpen ? '' : 'sr-only'}>Dashboard</span>
 			</a>
+			<a
+				href="/admin/homepage"
+				class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin/homepage')
+					? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+					: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
+				title={!$adminSidebarOpen ? 'Profile' : undefined}
+				aria-current={isActive('/admin/homepage') ? 'page' : undefined}
+			>
+				<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+				</svg>
+				<span class={$adminSidebarOpen ? '' : 'sr-only'}>Profile</span>
+			</a>
 		</div>
 
 		<!-- Facets Section - always visible -->
 		<div class="space-y-2">
 			<span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">Facets</span>
 			<div class="space-y-1">
-					<!-- Static Homepage link - always shows first -->
-					<a
-						href="/admin/homepage"
-						class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin/homepage')
-							? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
-							: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
-						title={!$adminSidebarOpen ? 'Facets: Homepage (/)' : undefined}
-						aria-current={isActive('/admin/homepage') ? 'page' : undefined}
-					>
-						<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-						</svg>
-						<span class="flex items-center gap-1.5 min-w-0 overflow-hidden {$adminSidebarOpen ? '' : 'sr-only'}">
-							<span class="truncate">Homepage</span>
-							<span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">/</span>
-						</span>
-					</a>
 					{#if facetsLoading}
 						<div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">
 							Loading...
@@ -196,19 +195,6 @@ let isActive = $derived((href: string): boolean => {
 								Retry
 							</button>
 						</div>
-					{:else if facets.length === 0}
-						<!-- Empty state - but Homepage link is already shown above -->
-						<div class="px-3 py-2 {$adminSidebarOpen ? '' : 'sr-only'}">
-							<a
-								href="/admin/views/new"
-								class="inline-flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
-							>
-								<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-								</svg>
-								New Facet
-							</a>
-						</div>
 					{:else}
 						{#each facets as facet}
 							<a
@@ -219,9 +205,9 @@ let isActive = $derived((href: string): boolean => {
 								title={!$adminSidebarOpen ? `Facets: ${facet.name}` : undefined}
 								aria-current={isActive(`/admin/views/${facet.id}`) ? 'page' : undefined}
 							>
+								<!-- Diamond icon -->
 								<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3l9 9-9 9-9-9 9-9z" />
 								</svg>
 								<span class="flex items-center gap-1.5 min-w-0 overflow-hidden {$adminSidebarOpen ? '' : 'sr-only'}">
 									<span class="truncate" title={facet.name as string}>{facet.name}</span>
@@ -237,19 +223,32 @@ let isActive = $derived((href: string): boolean => {
 							</a>
 						{/each}
 					{/if}
-					<!-- View All Facets link -->
+					<!-- View more link - only show if there are more than 4 facets -->
+					{#if facetsTotalCount > 4}
+						<a
+							href="/admin/views"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+							title={!$adminSidebarOpen ? 'View more facets' : undefined}
+						>
+							<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+							</svg>
+							<span class={$adminSidebarOpen ? '' : 'sr-only'}>View more...</span>
+						</a>
+					{/if}
+					<!-- New Facet button - always visible -->
 					<a
-						href="/admin/views"
-						class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin/views') && !$page.url.pathname.match(/\/admin\/views\/[^/]+$/)
+						href="/admin/views/new"
+						class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin/views/new')
 							? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
-							: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
-						title={!$adminSidebarOpen ? 'Facets: View All Facets' : undefined}
-						aria-current={isActive('/admin/views') && !$page.url.pathname.match(/\/admin\/views\/[^/]+$/) ? 'page' : undefined}
+							: 'text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20'}"
+						title={!$adminSidebarOpen ? 'Create new facet' : undefined}
+						aria-current={isActive('/admin/views/new') ? 'page' : undefined}
 					>
 						<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
 						</svg>
-						<span class={$adminSidebarOpen ? '' : 'sr-only'}>View All Facets</span>
+						<span class={$adminSidebarOpen ? '' : 'sr-only'}>+ New Facet</span>
 					</a>
 			</div>
 		</div>
