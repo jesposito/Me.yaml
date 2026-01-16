@@ -149,6 +149,25 @@
 		]);
 	});
 
+	// Track previous viewId to detect navigation between views
+	let prevViewId: string | null = null;
+
+	// Reload view data when navigating between different views
+	run(() => {
+		if (viewId && prevViewId !== null && prevViewId !== viewId) {
+			// Reset loading state and reload
+			loading = true;
+			Promise.all([
+				loadView(),
+				loadSectionItems(),
+				loadViewTokens()
+			]).finally(() => {
+				loading = false;
+			});
+		}
+		prevViewId = viewId;
+	});
+
 
 	async function loadProfile() {
 		try {
