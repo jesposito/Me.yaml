@@ -4,7 +4,7 @@
 	const bubble = createBubbler();
 	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
+	import { goto, afterNavigate } from '$app/navigation';
 	import { pb, type View, type ViewSection, type ItemConfig, type Profile, type SectionWidth, type ShareToken, OVERRIDABLE_FIELDS, VALID_LAYOUTS, VALID_WIDTHS, getValidWidthsForLayout, isWidthValidForLayout } from '$lib/pocketbase';
 	import { collection } from '$lib/stores/demo';
 	import { toasts, confirm } from '$lib/stores';
@@ -149,13 +149,12 @@
 		]);
 	});
 
-	// Track previous viewId to detect navigation between views
-	let prevViewId: string | null = null;
-
-	// Reload view data when navigating between different views
-	run(() => {
-		if (viewId && prevViewId !== null && prevViewId !== viewId) {
-			// Reset loading state and reload
+	// Reload view data when navigating between different views (e.g., clicking facets in sidebar)
+	afterNavigate(({ from, to }) => {
+		const fromId = from?.params?.id;
+		const toId = to?.params?.id;
+		// Only reload if navigating between different view IDs
+		if (fromId && toId && fromId !== toId) {
 			loading = true;
 			Promise.all([
 				loadView(),
@@ -165,7 +164,6 @@
 				loading = false;
 			});
 		}
-		prevViewId = viewId;
 	});
 
 
