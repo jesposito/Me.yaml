@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { run, preventDefault, createBubbler, stopPropagation, self } from 'svelte/legacy';
+	import { preventDefault, createBubbler, stopPropagation, self } from 'svelte/legacy';
 
 	const bubble = createBubbler();
 	import { onMount, onDestroy } from 'svelte';
@@ -52,8 +52,6 @@
 	let ctaText = $state('');
 	let ctaUrl = $state('');
 	let isActive = $state(true);
-	let isDefault = $state(false);
-	let originalIsDefault = false;
 	let accentColor: AccentColor | null = $state(null);
 	let heroImageUrl: string | null = $state(null);
 	let heroImageFile: File | null = null;
@@ -125,11 +123,6 @@
 	let newTokenMaxUses = $state(0);
 	let createdTokenUrl: string | null = $state(null);
 
-	// Homepage visibility settings (only shown for default view)
-	let siteSettingsLoading = $state(true);
-	let siteSettingsSaving = $state(false);
-	let homepageEnabled = $state(true);
-	let landingPageMessage = $state('This profile is being set up.');
 
 
 	// Simple pattern - admin layout handles auth
@@ -144,9 +137,10 @@
 			loadSectionItems(),
 			loadProfile(),
 			checkAIPrintStatus(),
-			loadViewTokens(),
-			loadSiteSettings()
+			loadViewTokens()
 		]);
+		// Load exports after view is loaded (needs slug)
+		await loadExports();
 	});
 
 	// Reload view data when navigating between different views (e.g., clicking facets in sidebar)
@@ -183,54 +177,6 @@
 		} catch (err) {
 			console.error('Failed to load profile:', err);
 			// Profile is optional for preview, don't show error
-		}
-	}
-
-	// Homepage visibility settings functions (for default view)
-	async function loadSiteSettings() {
-		try {
-			const response = await fetch('/api/site-settings');
-			if (response.ok) {
-				const data = await response.json();
-				homepageEnabled = data.homepage_enabled !== false;
-				landingPageMessage = data.landing_page_message || '';
-			}
-		} catch (err) {
-			console.error('Failed to load site settings:', err);
-		} finally {
-			siteSettingsLoading = false;
-		}
-	}
-
-	async function saveSiteSettings() {
-		siteSettingsSaving = true;
-		try {
-			const response = await fetch('/api/site-settings', {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: pb.authStore.token || ''
-				},
-				body: JSON.stringify({
-					homepage_enabled: homepageEnabled,
-					landing_page_message: landingPageMessage
-				})
-			});
-
-			const result = await response.json();
-			if (!response.ok) {
-				toasts.add('error', result.error || 'Failed to save homepage settings');
-				return;
-			}
-
-			homepageEnabled = result.homepage_enabled !== false;
-			landingPageMessage = result.landing_page_message || '';
-			toasts.add('success', 'Homepage visibility updated');
-		} catch (err) {
-			console.error('Failed to save site settings:', err);
-			toasts.add('error', 'Failed to save homepage settings');
-		} finally {
-			siteSettingsSaving = false;
 		}
 	}
 
@@ -527,13 +473,6 @@
 			ctaText = view.cta_text || '';
 			ctaUrl = view.cta_url || '';
 			isActive = view.is_active;
-
-			const defaultViews = await collection('views').getList(1, 1, {
-				filter: 'is_default = true'
-			});
-			isDefault = defaultViews.items.length > 0 && defaultViews.items[0].id === viewId;
-			originalIsDefault = isDefault;
-
 			accentColor = (view.accent_color as AccentColor) || null;
 
 			if (record.hero_image) {
@@ -770,7 +709,6 @@
 			formData.append('is_active', String(isActive));
 			formData.append('sections', JSON.stringify(sectionsData));
 			formData.append('accent_color', accentColor || '');
-			formData.set('is_default', isDefault ? 'true' : 'false');
 
 			if (visibility === 'password' && password.trim()) {
 				formData.append('password', password.trim());
@@ -918,10 +856,6 @@
 		updateSections();
 	}
 	let viewId = $derived($page.params.id as string);
-	// Load exports when slug is available
-	run(() => {
-		if (slug) loadExports();
-	});
 </script>
 
 <svelte:head>
@@ -995,60 +929,6 @@
 			<!-- Editor Pane -->
 			<div class="editor-pane">
 		<form onsubmit={preventDefault(handleSubmit)} class="space-y-6">
-			<!-- Homepage Visibility (only for default view) -->
-			{#if isDefault}
-				<div class="card p-6 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
-					<h2 class="text-lg font-semibold text-primary-900 dark:text-primary-100 mb-2">Homepage Visibility</h2>
-					<p class="text-sm text-primary-700 dark:text-primary-300 mb-4">
-						Control whether your public homepage at <code class="px-1 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">/</code> is visible to visitors.
-					</p>
-
-					<div class="flex flex-col gap-4">
-						<div class="flex items-center justify-between gap-4">
-							<div>
-								<p class="text-sm font-medium text-primary-900 dark:text-primary-100">
-									Public homepage {homepageEnabled ? 'ON' : 'OFF'}
-								</p>
-								<p class="text-sm text-primary-700 dark:text-primary-300">
-									When off, <code class="px-1 py-0.5 bg-primary-100 dark:bg-primary-800 rounded text-xs">/</code>, <code class="px-1 py-0.5 bg-primary-100 dark:bg-primary-800 rounded text-xs">/posts</code>, and <code class="px-1 py-0.5 bg-primary-100 dark:bg-primary-800 rounded text-xs">/talks</code> show a private landing message.
-								</p>
-							</div>
-							<label class="inline-flex items-center cursor-pointer">
-								<input
-									type="checkbox"
-									class="sr-only peer"
-									bind:checked={homepageEnabled}
-									disabled={siteSettingsLoading || siteSettingsSaving}
-								/>
-								<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 dark:peer-focus:ring-primary-400 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 relative"></div>
-							</label>
-						</div>
-
-						<div>
-							<label class="label text-primary-800 dark:text-primary-200" for="landing-message">Landing message (shown when homepage is off)</label>
-							<textarea
-								id="landing-message"
-								class="input h-20"
-								bind:value={landingPageMessage}
-								placeholder="This profile is being set up."
-								disabled={siteSettingsLoading || siteSettingsSaving}
-							></textarea>
-						</div>
-
-						<div class="flex justify-end">
-							<button
-								type="button"
-								class="btn btn-primary"
-								onclick={saveSiteSettings}
-								disabled={siteSettingsSaving || siteSettingsLoading}
-							>
-								{siteSettingsSaving ? 'Saving...' : 'Save Homepage Settings'}
-							</button>
-						</div>
-					</div>
-				</div>
-			{/if}
-
 			<!-- Basic Info -->
 			<div class="card p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h2>
@@ -1506,19 +1386,6 @@
 							<p class="text-xs text-gray-500">Inactive views are not accessible publicly</p>
 						</div>
 					</label>
-
-					{#if isDefault}
-					<!-- Show read-only indicator for the default view -->
-					<div class="flex items-center gap-3 opacity-75">
-						<svg class="w-5 h-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-						</svg>
-						<div>
-							<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Homepage View</span>
-							<p class="text-xs text-gray-500">This is the default view shown at /</p>
-						</div>
-					</div>
-				{/if}
 				</div>
 			</div>
 

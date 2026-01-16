@@ -45,11 +45,6 @@ func RegisterSeedHook(app *pocketbase.PocketBase) {
 			log.Printf("Seed warning: %v", err)
 		}
 
-		// Always ensure default view exists (regardless of seed mode)
-		if err := ensureDefaultView(app); err != nil {
-			log.Printf("Default view warning: %v", err)
-		}
-
 		return se.Next()
 	})
 }
@@ -80,56 +75,6 @@ func seedMinimalData(app *pocketbase.PocketBase) error {
 	log.Println("========================================")
 	log.Println("")
 
-	return nil
-}
-
-// ensureDefaultView creates the Default view if it doesn't exist.
-// The Default view represents the "/" route and is always shown in the admin sidebar.
-// It starts in "under construction" mode (is_active=false) with a placeholder message.
-func ensureDefaultView(app *pocketbase.PocketBase) error {
-	// Check if default view already exists
-	existingDefault, err := app.FindRecordsByFilter("views", "is_default = true", "", 1, 0, nil)
-	if err == nil && len(existingDefault) > 0 {
-		// Default view already exists
-		return nil
-	}
-
-	log.Println("Creating default view...")
-
-	viewsColl, err := app.FindCollectionByNameOrId("views")
-	if err != nil {
-		return fmt.Errorf("views collection not found: %w", err)
-	}
-
-	view := core.NewRecord(viewsColl)
-	view.Set("name", "Default")
-	view.Set("slug", "") // Empty slug = root route "/"
-	view.Set("description", "The default homepage view")
-	view.Set("visibility", "public")
-	view.Set("hero_headline", "")
-	view.Set("hero_summary", "")
-	view.Set("cta_text", "")
-	view.Set("cta_url", "")
-
-	// Default sections - all enabled with default layouts
-	sectionsJSON, _ := json.Marshal([]map[string]interface{}{
-		{"section": "experience", "enabled": true, "layout": "default"},
-		{"section": "projects", "enabled": true, "layout": "default"},
-		{"section": "education", "enabled": true, "layout": "default"},
-		{"section": "certifications", "enabled": true, "layout": "default"},
-		{"section": "skills", "enabled": true, "layout": "default"},
-		{"section": "posts", "enabled": true, "layout": "default"},
-		{"section": "talks", "enabled": true, "layout": "default"},
-	})
-	view.Set("sections", string(sectionsJSON))
-	view.Set("is_active", false) // Under construction mode by default
-	view.Set("is_default", true)
-
-	if err := app.Save(view); err != nil {
-		return fmt.Errorf("failed to create default view: %w", err)
-	}
-
-	log.Println("  Default view created (under construction mode)")
 	return nil
 }
 
@@ -591,7 +536,6 @@ func seedDevData(app *pocketbase.PocketBase) error {
 	})
 	view.Set("sections", string(sectionsJSON))
 	view.Set("is_active", true)
-	view.Set("is_default", true)
 	app.Save(view)
 
 	log.Println("Development data seeded successfully!")
@@ -1027,7 +971,6 @@ func loadDemoDataForUser(app *pocketbase.PocketBase) error {
 	})
 	view.Set("sections", string(sectionsJSON))
 	view.Set("is_active", true)
-	view.Set("is_default", true)
 	app.Save(view)
 
 	// Add 2 blog posts

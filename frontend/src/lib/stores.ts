@@ -121,11 +121,30 @@ function createSidebarSectionStatesStore() {
 				// Invalid JSON, ignore and use defaults
 			}
 		},
-		toggle: (sectionId: string) => {
+		toggle: (sectionId: string, allSectionIds?: string[]) => {
 			update((states) => {
 				// Use the same default as isExpanded (true = expanded)
 				const currentState = states[sectionId] ?? true;
-				const newStates = { ...states, [sectionId]: !currentState };
+				const willOpen = !currentState;
+
+				// Accordion behavior: close all other sections when opening one
+				const newStates: SidebarSectionStates = {};
+
+				// Get all section IDs to manage
+				const sectionsToManage = allSectionIds ?? Object.keys(states);
+
+				if (willOpen) {
+					// Close all sections, then open only this one
+					for (const id of sectionsToManage) {
+						newStates[id] = false;
+					}
+					newStates[sectionId] = true;
+				} else {
+					// Just close this section (keep others as they are)
+					Object.assign(newStates, states);
+					newStates[sectionId] = false;
+				}
+
 				if (typeof window !== 'undefined') {
 					localStorage.setItem(STORAGE_KEY, JSON.stringify(newStates));
 				}

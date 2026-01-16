@@ -22,6 +22,9 @@
 		settings: 'sidebar-settings'
 	};
 
+	// All section IDs as array for accordion behavior
+	const ALL_SECTION_IDS = Object.values(SECTION_IDS);
+
 	// Map section titles to section IDs
 	const sectionTitleToId: Record<string, string> = {
 		'Dashboard': SECTION_IDS.dashboard,
@@ -35,7 +38,7 @@
 		return sidebarSectionStates.isExpanded($sidebarSectionStates, sectionId, true);
 	}
 
-	// Load facets on mount: Default View + 3 most recent
+	// Load facets on mount: 4 most recent views
 	onMount(() => {
 		sidebarSectionStates.initialize();
 		// Small delay to avoid race with page-level data loading
@@ -66,50 +69,12 @@
 		facetsLoading = true;
 		facetsError = false;
 		try {
-			// Strategy: Always show default view + 3 most recent others
-			// 1. Fetch recent views
-			// 2. Try to fetch default view separately (may fail if is_default field doesn't exist)
-			// 3. Ensure default is always first, followed by up to 3 recent non-default views
-
+			// Fetch 4 most recent views
 			const recentResult = await collection('views').getList(1, 4, {
 				sort: '-id',
 				$cancelKey: 'sidebar-facets-load'
 			});
-			const recentItems = recentResult?.items ?? [];
-
-			// Try to fetch the default view specifically
-			let defaultView: Record<string, unknown> | null = null;
-			try {
-				const defaultResult = await collection('views').getList(1, 1, {
-					filter: 'is_default = true',
-					$cancelKey: 'sidebar-default-view-load'
-				});
-				if (defaultResult?.items?.length > 0) {
-					defaultView = defaultResult.items[0];
-				}
-			} catch {
-				// is_default field may not exist in older schemas - that's OK
-				// Fall back to checking if any recent item has is_default
-				defaultView = recentItems.find((v) => v.is_default) || null;
-			}
-
-			// Build final list: default first (if exists), then recent non-defaults
-			const finalItems: Array<Record<string, unknown>> = [];
-
-			if (defaultView) {
-				finalItems.push(defaultView);
-				// Add up to 3 recent views that aren't the default
-				for (const item of recentItems) {
-					if (item.id !== defaultView.id && finalItems.length < 4) {
-						finalItems.push(item);
-					}
-				}
-			} else {
-				// No default view - just show recent ones
-				finalItems.push(...recentItems.slice(0, 4));
-			}
-
-			facets = finalItems;
+			facets = recentResult?.items ?? [];
 		} catch (err) {
 			console.error('[Sidebar] Failed to load facets:', err);
 			facetsError = true;
@@ -181,7 +146,7 @@ let isActive = $derived((href: string): boolean => {
 		<div class="space-y-2">
 			<button
 				type="button"
-				onclick={() => sidebarSectionStates.toggle(SECTION_IDS.dashboard)}
+				onclick={() => sidebarSectionStates.toggle(SECTION_IDS.dashboard, ALL_SECTION_IDS)}
 				class="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors {$adminSidebarOpen ? '' : 'sr-only'}"
 				aria-expanded={isSectionExpanded(SECTION_IDS.dashboard)}
 				aria-controls="dashboard-items"
@@ -220,7 +185,7 @@ let isActive = $derived((href: string): boolean => {
 		<div class="space-y-2">
 			<button
 				type="button"
-				onclick={() => sidebarSectionStates.toggle(SECTION_IDS.facets)}
+				onclick={() => sidebarSectionStates.toggle(SECTION_IDS.facets, ALL_SECTION_IDS)}
 				class="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors {$adminSidebarOpen ? '' : 'sr-only'}"
 				aria-expanded={isSectionExpanded(SECTION_IDS.facets)}
 				aria-controls="facets-items"
@@ -238,6 +203,23 @@ let isActive = $derived((href: string): boolean => {
 			</button>
 			{#if isSectionExpanded(SECTION_IDS.facets)}
 				<div id="facets-items" class="space-y-1">
+					<!-- Static Homepage link - always shows first -->
+					<a
+						href="/admin/settings"
+						class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin/settings')
+							? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+							: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
+						title={!$adminSidebarOpen ? 'Facets: Homepage (/)' : undefined}
+						aria-current={isActive('/admin/settings') ? 'page' : undefined}
+					>
+						<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+						</svg>
+						<span class="flex items-center gap-1.5 min-w-0 overflow-hidden {$adminSidebarOpen ? '' : 'sr-only'}">
+							<span class="truncate">Homepage</span>
+							<span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">/</span>
+						</span>
+					</a>
 					{#if facetsLoading}
 						<div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">
 							Loading...
@@ -258,9 +240,8 @@ let isActive = $derived((href: string): boolean => {
 							</button>
 						</div>
 					{:else if facets.length === 0}
-						<!-- Empty state -->
+						<!-- Empty state - but Homepage link is already shown above -->
 						<div class="px-3 py-2 {$adminSidebarOpen ? '' : 'sr-only'}">
-							<p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Create your first facet to showcase different versions of your profile.</p>
 							<a
 								href="/admin/views/new"
 								class="inline-flex items-center gap-1 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
@@ -278,23 +259,15 @@ let isActive = $derived((href: string): boolean => {
 								class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive(`/admin/views/${facet.id}`)
 									? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
 									: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
-								title={!$adminSidebarOpen ? `Facets: ${facet.is_default ? 'Homepage (/)' : facet.name}` : undefined}
+								title={!$adminSidebarOpen ? `Facets: ${facet.name}` : undefined}
 								aria-current={isActive(`/admin/views/${facet.id}`) ? 'page' : undefined}
 							>
 								<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-									{#if facet.is_default}
-										<!-- Home icon for default view (represents "/" route) -->
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-									{:else}
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-									{/if}
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
 								</svg>
 								<span class="flex items-center gap-1.5 min-w-0 overflow-hidden {$adminSidebarOpen ? '' : 'sr-only'}">
 									<span class="truncate" title={facet.name as string}>{facet.name}</span>
-									{#if facet.is_default}
-										<span class="text-xs text-gray-500 dark:text-gray-400 shrink-0">/</span>
-									{/if}
 									<!-- Visibility indicator -->
 									{#if facet.visibility === 'public'}
 										<span class="w-2 h-2 rounded-full bg-green-500 shrink-0" title="Public"></span>
@@ -331,7 +304,7 @@ let isActive = $derived((href: string): boolean => {
 			<div class="space-y-2">
 				<button
 					type="button"
-					onclick={() => sidebarSectionStates.toggle(sectionId)}
+					onclick={() => sidebarSectionStates.toggle(sectionId, ALL_SECTION_IDS)}
 					class="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors {$adminSidebarOpen ? '' : 'sr-only'}"
 					aria-expanded={isSectionExpanded(sectionId)}
 					aria-controls="{sectionId}-items"
