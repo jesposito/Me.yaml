@@ -74,9 +74,9 @@
 
 	async function loadViews() {
 		try {
-			// Sort by created date only - is_default field may not exist in older schemas
+			// Sort by id (time-ordered) - created field may not exist in older schemas
 			const records = await collection('views').getList(1, 100, {
-				sort: '-created'
+				sort: '-id'
 			});
 			// Reorder to put the default view first
 			const items = records.items as unknown as View[];

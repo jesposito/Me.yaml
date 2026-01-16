@@ -72,7 +72,7 @@
 			// 3. Ensure default is always first, followed by up to 3 recent non-default views
 
 			const recentResult = await collection('views').getList(1, 4, {
-				sort: '-created',
+				sort: '-id',
 				$cancelKey: 'sidebar-facets-load'
 			});
 			const recentItems = recentResult?.items ?? [];
