@@ -346,7 +346,7 @@
 		try {
 			const result = await pb.collection('share_tokens').getList<ShareToken>(1, 10, {
 				filter: `view_id = "${viewId}"`,
-				sort: '-created'
+				sort: '-id'
 			});
 			viewTokens = result.items;
 		} catch (err) {
