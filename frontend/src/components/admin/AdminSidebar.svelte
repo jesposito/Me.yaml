@@ -66,24 +66,50 @@
 		facetsLoading = true;
 		facetsError = false;
 		try {
-			// Fetch views sorted by created date (desc) - most recent first
-			// Note: We avoid sorting by is_default server-side because the field may not exist
-			// in older database schemas. Instead, we reorder client-side to put the default first.
-			// Admin layout already validates auth before rendering sidebar.
-			// Use unique $cancelKey to prevent auto-cancellation conflicts with other views requests
-			const result = await collection('views').getList(1, 4, {
+			// Strategy: Always show default view + 3 most recent others
+			// 1. Fetch recent views
+			// 2. Try to fetch default view separately (may fail if is_default field doesn't exist)
+			// 3. Ensure default is always first, followed by up to 3 recent non-default views
+
+			const recentResult = await collection('views').getList(1, 4, {
 				sort: '-created',
 				$cancelKey: 'sidebar-facets-load'
 			});
+			const recentItems = recentResult?.items ?? [];
 
-			// Reorder to put the default view first (if it exists)
-			const items = result?.items ?? [];
-			const defaultIndex = items.findIndex((v) => v.is_default);
-			if (defaultIndex > 0) {
-				const [defaultView] = items.splice(defaultIndex, 1);
-				items.unshift(defaultView);
+			// Try to fetch the default view specifically
+			let defaultView: Record<string, unknown> | null = null;
+			try {
+				const defaultResult = await collection('views').getList(1, 1, {
+					filter: 'is_default = true',
+					$cancelKey: 'sidebar-default-view-load'
+				});
+				if (defaultResult?.items?.length > 0) {
+					defaultView = defaultResult.items[0];
+				}
+			} catch {
+				// is_default field may not exist in older schemas - that's OK
+				// Fall back to checking if any recent item has is_default
+				defaultView = recentItems.find((v) => v.is_default) || null;
 			}
-			facets = items;
+
+			// Build final list: default first (if exists), then recent non-defaults
+			const finalItems: Array<Record<string, unknown>> = [];
+
+			if (defaultView) {
+				finalItems.push(defaultView);
+				// Add up to 3 recent views that aren't the default
+				for (const item of recentItems) {
+					if (item.id !== defaultView.id && finalItems.length < 4) {
+						finalItems.push(item);
+					}
+				}
+			} else {
+				// No default view - just show recent ones
+				finalItems.push(...recentItems.slice(0, 4));
+			}
+
+			facets = finalItems;
 		} catch (err) {
 			console.error('[Sidebar] Failed to load facets:', err);
 			facetsError = true;
