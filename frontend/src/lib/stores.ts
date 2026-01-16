@@ -107,7 +107,7 @@ function createSidebarSectionStatesStore() {
 
 	return {
 		subscribe,
-		initialize: () => {
+		initialize: (allSectionIds?: string[], defaultExpandedSection?: string) => {
 			if (typeof window === 'undefined') return;
 			try {
 				const saved = localStorage.getItem(STORAGE_KEY);
@@ -115,16 +115,26 @@ function createSidebarSectionStatesStore() {
 					const parsed = JSON.parse(saved);
 					if (typeof parsed === 'object' && parsed !== null) {
 						set(parsed);
+						return;
 					}
 				}
 			} catch {
 				// Invalid JSON, ignore and use defaults
 			}
+			// No saved state - set default with only one section open
+			if (allSectionIds && defaultExpandedSection) {
+				const defaultState: SidebarSectionStates = {};
+				for (const id of allSectionIds) {
+					defaultState[id] = id === defaultExpandedSection;
+				}
+				set(defaultState);
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultState));
+			}
 		},
 		toggle: (sectionId: string, allSectionIds?: string[]) => {
 			update((states) => {
-				// Use the same default as isExpanded (true = expanded)
-				const currentState = states[sectionId] ?? true;
+				// Default to closed if not explicitly set
+				const currentState = states[sectionId] ?? false;
 				const willOpen = !currentState;
 
 				// Accordion behavior: close all other sections when opening one

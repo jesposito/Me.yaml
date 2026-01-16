@@ -13,10 +13,8 @@
 	// Debounce timer to prevent rapid successive loadFacets calls
 	let loadFacetsTimer: ReturnType<typeof setTimeout> | null = null;
 
-	// Section IDs for collapsible sections
+	// Section IDs for collapsible sections (only these are in the accordion)
 	const SECTION_IDS = {
-		dashboard: 'sidebar-dashboard',
-		facets: 'sidebar-facets',
 		information: 'sidebar-information',
 		voice: 'sidebar-voice',
 		settings: 'sidebar-settings'
@@ -25,9 +23,8 @@
 	// All section IDs as array for accordion behavior
 	const ALL_SECTION_IDS = Object.values(SECTION_IDS);
 
-	// Map section titles to section IDs
+	// Map section titles to section IDs (for collapsible sections)
 	const sectionTitleToId: Record<string, string> = {
-		'Dashboard': SECTION_IDS.dashboard,
 		'Your Information': SECTION_IDS.information,
 		'Your Voice': SECTION_IDS.voice,
 		'Settings': SECTION_IDS.settings
@@ -35,12 +32,13 @@
 
 	// Helper to check if a section is expanded
 	function isSectionExpanded(sectionId: string): boolean {
-		return sidebarSectionStates.isExpanded($sidebarSectionStates, sectionId, true);
+		return sidebarSectionStates.isExpanded($sidebarSectionStates, sectionId, false);
 	}
 
 	// Load facets on mount: 4 most recent views
 	onMount(() => {
-		sidebarSectionStates.initialize();
+		// Initialize with Your Information section expanded by default
+		sidebarSectionStates.initialize(ALL_SECTION_IDS, SECTION_IDS.information);
 		// Small delay to avoid race with page-level data loading
 		scheduleFacetsLoad();
 	});
@@ -92,7 +90,6 @@ const navSections = [
 	{
 		title: 'Your Information',
 		items: [
-			{ href: '/admin/profile', label: 'Profile', icon: 'user' },
 			{ href: '/admin/contacts', label: 'Contact Methods', icon: 'mail' },
 			{ href: '/admin/experience', label: 'Experience', icon: 'briefcase' },
 			{ href: '/admin/projects', label: 'Projects', icon: 'folder' },
@@ -142,75 +139,35 @@ let isActive = $derived((href: string): boolean => {
 	aria-label="Admin navigation"
 >
 	<nav class="p-3 space-y-4" aria-label="Main menu">
-		<!-- Dashboard Section -->
-		<div class="space-y-2">
-			<button
-				type="button"
-				onclick={() => sidebarSectionStates.toggle(SECTION_IDS.dashboard, ALL_SECTION_IDS)}
-				class="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors {$adminSidebarOpen ? '' : 'sr-only'}"
-				aria-expanded={isSectionExpanded(SECTION_IDS.dashboard)}
-				aria-controls="dashboard-items"
+		<!-- Dashboard - always visible -->
+		<div class="space-y-1">
+			<a
+				href="/admin"
+				class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin')
+					? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
+					: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
+				title={!$adminSidebarOpen ? 'Dashboard' : undefined}
+				aria-current={isActive('/admin') ? 'page' : undefined}
 			>
-				<span>Dashboard</span>
-				<svg
-					class="w-4 h-4 transition-transform duration-200 {isSectionExpanded(SECTION_IDS.dashboard) ? 'rotate-0' : '-rotate-90'}"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					aria-hidden="true"
-				>
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+				<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
 				</svg>
-			</button>
-			{#if isSectionExpanded(SECTION_IDS.dashboard)}
-				<div id="dashboard-items" class="space-y-1">
-					<a
-						href="/admin"
-						class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin')
-							? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
-							: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
-						title={!$adminSidebarOpen ? 'Dashboard: Dashboard' : undefined}
-						aria-current={isActive('/admin') ? 'page' : undefined}
-					>
-						<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-						</svg>
-						<span class={$adminSidebarOpen ? '' : 'sr-only'}>Dashboard</span>
-					</a>
-				</div>
-			{/if}
+				<span class={$adminSidebarOpen ? '' : 'sr-only'}>Dashboard</span>
+			</a>
 		</div>
 
-		<!-- Dynamic Facets Section -->
+		<!-- Facets Section - always visible -->
 		<div class="space-y-2">
-			<button
-				type="button"
-				onclick={() => sidebarSectionStates.toggle(SECTION_IDS.facets, ALL_SECTION_IDS)}
-				class="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors {$adminSidebarOpen ? '' : 'sr-only'}"
-				aria-expanded={isSectionExpanded(SECTION_IDS.facets)}
-				aria-controls="facets-items"
-			>
-				<span>Facets</span>
-				<svg
-					class="w-4 h-4 transition-transform duration-200 {isSectionExpanded(SECTION_IDS.facets) ? 'rotate-0' : '-rotate-90'}"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					aria-hidden="true"
-				>
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-				</svg>
-			</button>
-			{#if isSectionExpanded(SECTION_IDS.facets)}
-				<div id="facets-items" class="space-y-1">
+			<span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 {$adminSidebarOpen ? '' : 'sr-only'}">Facets</span>
+			<div class="space-y-1">
 					<!-- Static Homepage link - always shows first -->
 					<a
-						href="/admin/settings"
-						class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin/settings')
+						href="/admin/homepage"
+						class="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors {isActive('/admin/homepage')
 							? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300'
 							: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}"
 						title={!$adminSidebarOpen ? 'Facets: Homepage (/)' : undefined}
-						aria-current={isActive('/admin/settings') ? 'page' : undefined}
+						aria-current={isActive('/admin/homepage') ? 'page' : undefined}
 					>
 						<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -294,8 +251,7 @@ let isActive = $derived((href: string): boolean => {
 						</svg>
 						<span class={$adminSidebarOpen ? '' : 'sr-only'}>View All Facets</span>
 					</a>
-				</div>
-			{/if}
+			</div>
 		</div>
 
 		<!-- Remaining Sections -->
