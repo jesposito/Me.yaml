@@ -30,7 +30,7 @@ This roadmap reflects current implementation status and planned work, ordered ch
 - ✅ **Custom Domain Support:** Self-hosted architecture supports any domain via reverse proxy (Nginx, Traefik, Cloudflare Tunnel, etc.).
 - ✅ **Mobile UX Overhaul (Phase 16.5):** Complete responsive redesign of admin panel - overlay sidebar, touch targets, bottom sheet modals, form stacking, overflow prevention.
 - ✅ **UX Improvements (Phase 17.1-17.2):** Setup Wizard for new users, Contextual Help on all admin pages.
-- 🔜 **Next Up:** Phase 17.3 Better Empty States, Phase 18 Sharing & Analytics, Phase 19 Developer Platform.
+- 🔜 **Next Up:** Phase 18 Sharing & Analytics, Phase 19 Developer Platform.
 
 ---
 
@@ -226,7 +226,7 @@ See [MOBILE_UX_PLAN.md](MOBILE_UX_PLAN.md) for detailed implementation plan.
 
 ---
 
-## Phase 17: UX Improvements (🟡 In Progress)
+## Phase 17: UX Improvements (✅ Complete)
 **Purpose:** Make Facet easier to understand and use
 
 ### 17.1 Guided Setup Wizard (✅ Complete)
@@ -266,30 +266,6 @@ Each admin page now has a collapsible help section explaining:
 **Files:**
 - `frontend/src/components/admin/PageHelp.svelte` - Reusable component
 - All admin pages updated with contextual help
-
-### 17.3 Better Empty States
-**Priority:** Medium | **Effort:** Low
-
-Empty sections currently show nothing. Replace with helpful prompts:
-
-```
-┌─────────────────────────────────────────┐
-│  📂 No projects yet                     │
-│                                         │
-│  Projects showcase your portfolio work. │
-│                                         │
-│  [Import from GitHub]  [Create manually]│
-│  [Upload resume to extract]             │
-└─────────────────────────────────────────┘
-```
-
-**Implementation:**
-- Create `EmptyState.svelte` component with:
-  - Icon
-  - Title
-  - Description
-  - Action buttons (contextual)
-- Replace empty list states across all admin pages
 
 ---
 
@@ -524,7 +500,6 @@ When clicked:
 
 ### Medium Priority
 - 🔜 **QR Codes** (Phase 18.3) - Quick win for sharing
-- 🔜 **Better Empty States** (Phase 17.3) - Improve first-run experience
 - 🔜 **Webhooks** (Phase 19.1) - Enable integrations
 - 🔜 **Testimonials System** (Phase 20.1) - Social proof
 
