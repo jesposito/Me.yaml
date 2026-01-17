@@ -233,7 +233,7 @@
 			-->
 			<main 
 				id="main-content" 
-				class="flex-1 p-4 lg:p-6 mt-16 transition-all duration-200
+				class="flex-1 p-4 lg:p-6 mt-16 transition-all duration-200 overflow-x-hidden
 					{isMobile ? '' : ($adminSidebarOpen ? 'lg:ml-64' : 'lg:ml-16')}"
 			>
 				{#key $demoMode}

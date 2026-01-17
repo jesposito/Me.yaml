@@ -1949,8 +1949,9 @@
 
 <style>
 	.view-editor-container {
+		width: 100%;
 		max-width: 100%;
-		overflow-x: hidden;
+		min-width: 0;
 	}
 
 	.editor-layout {
@@ -1972,7 +1973,7 @@
 
 	.preview-pane {
 		flex: 2;
-		min-width: 320px;
+		min-width: 0; /* Allow shrinking on mobile */
 		max-width: 480px;
 	}
 
@@ -1983,24 +1984,23 @@
 		}
 
 		.editor-pane {
-			max-width: 100%;
 			width: 100%;
+			max-width: 100%;
+			min-width: 0;
 		}
 
 		.preview-pane {
 			width: 100%;
 			max-width: 100%;
+			min-width: 0;
 			margin-bottom: 1rem;
 		}
 	}
 
-	/* Large screens - show side by side with more padding */
+	/* Large screens - show side by side */
 	@media (min-width: 1280px) {
-		.view-editor-container {
-			padding: 0 1rem;
-		}
-
 		.preview-pane {
+			min-width: 320px; /* Only enforce min-width on large screens */
 			max-width: 560px;
 		}
 	}
