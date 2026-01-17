@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { setupWizard, canProceed, viewTemplates } from '$lib/stores/setupWizard';
 	import { collection } from '$lib/stores/demo';
-	import { toasts } from '$lib/stores';
+	import { toasts, triggerSidebarFacetsReload } from '$lib/stores';
 	import Step1BasicProfile from './wizard/Step1BasicProfile.svelte';
 	import Step2CreateView from './wizard/Step2CreateView.svelte';
 	import Step3ReviewLaunch from './wizard/Step3ReviewLaunch.svelte';
@@ -59,23 +59,27 @@
 			}
 			
 			if (template && viewData.name) {
-				const sections = template.sections.map((section, index) => ({
+				const sections = template.sections.map((section) => ({
 					section,
 					enabled: true,
-					order: index
+					items: [],
+					layout: 'default',
+					width: 'full' as const
 				}));
 				
 				await collection('views').create({
 					name: viewData.name,
 					slug: viewData.slug,
 					visibility: viewData.visibility,
-					description: viewData.description,
+					description: viewData.description || '',
 					sections,
-					is_active: true
+					is_active: true,
+					is_default: false
 				});
 			}
 			
 			toasts.add('success', 'Your profile is ready!');
+			triggerSidebarFacetsReload();
 			setupWizard.complete();
 			onComplete?.();
 		} catch (err) {

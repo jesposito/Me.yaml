@@ -185,6 +185,8 @@
 				.then((updatedUser) => {
 					// Update the currentUser store
 					currentUser.set(updatedUser);
+					// Check if setup wizard should be shown after password change
+					checkSetupWizard();
 				})
 				.catch((err) => {
 					console.error('Failed to refresh user data:', err);
