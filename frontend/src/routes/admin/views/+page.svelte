@@ -77,9 +77,9 @@
 
 <div class="max-w-4xl mx-auto">
 	<PageHelp pageKey="views">
-		<p><strong>Facets</strong> are different versions of your profile for different audiences.</p>
+		<p><strong>Facets</strong> are curated versions of your profile for different audiences.</p>
 		<p>Create a "Recruiter" facet with your full work history, a "Conference" facet highlighting talks, or a "Consulting" facet for client work. Each facet shows exactly what you want that audience to see.</p>
-		<p><strong>Tip:</strong> Mark one facet as "Default" - it appears at your homepage URL. Other facets get their own URLs like <code>/recruiter</code>.</p>
+		<p><strong>Tip:</strong> Your homepage (<code>/</code>) shows all public content. Facets let you create focused views at URLs like <code>/recruiter</code> with only the sections and items you choose.</p>
 	</PageHelp>
 
 	<div class="flex items-center justify-between mb-6">
