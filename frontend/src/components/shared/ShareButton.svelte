@@ -7,9 +7,10 @@
 		title: string;
 		text?: string;
 		class?: string;
+		isUnlisted?: boolean;
 	}
 
-	let { url, title, text, class: className = '' }: Props = $props();
+	let { url, title, text, class: className = '', isUnlisted = false }: Props = $props();
 
 	let isOpen = $state(false);
 	let copied = $state(false);
@@ -92,10 +93,20 @@
 	{#if isOpen && !useNative}
 		<div
 			bind:this={dropdownRef}
-			class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
+			class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
 			role="menu"
 			aria-orientation="vertical"
 		>
+			{#if isUnlisted}
+				<div class="px-3 py-2 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-b border-gray-200 dark:border-gray-700">
+					<div class="flex items-start gap-2">
+						<svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+						</svg>
+						<span>This view is unlisted. Share links may expire.</span>
+					</div>
+				</div>
+			{/if}
 			<button
 				onclick={handleCopyLink}
 				class="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3 min-h-[44px]"

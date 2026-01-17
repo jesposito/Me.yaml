@@ -293,6 +293,7 @@
 					: (data.shareToken ? `/s/${data.shareToken}` : `/${data.view?.slug || ''}`)}
 				title={`${data.profile?.name || 'Profile'} - ${data.view?.name || 'View'}`}
 				text={data.view?.hero_headline || data.profile?.headline || ''}
+				isUnlisted={!!data.shareToken}
 			/>
 			{#if pb.authStore.isValid}
 				<a
