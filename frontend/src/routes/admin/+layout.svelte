@@ -203,12 +203,13 @@
 	// Reactive auth check - update authorized when currentUser changes
 	run(() => {
 		if (mounted && !isLoginPage) {
-			const isAuth = $currentUser && pb.authStore.isValid;
-			if (isAuth && !authorized) {
-				// User just logged in - check for default password
-				checkDefaultPassword();
-				authorized = true;
-				loading = false;
+		const isAuth = $currentUser && pb.authStore.isValid;
+		if (isAuth && !authorized) {
+			// User just logged in - check for default password and setup wizard
+			checkDefaultPassword();
+			checkSetupWizard();
+			authorized = true;
+			loading = false;
 			} else if (!isAuth && authorized) {
 				// User just logged out - redirect
 				authorized = false;
