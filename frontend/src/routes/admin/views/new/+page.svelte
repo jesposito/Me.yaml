@@ -390,20 +390,20 @@
 		</div>
 	{:else}
 		<!-- Header -->
-		<div class="flex items-center justify-between mb-6 px-4">
+		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
 			<div class="flex items-center gap-4">
 				<a href="/admin/views" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300" aria-label="Back to facets">
 					<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 					</svg>
 				</a>
-				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Create Facet</h1>
+				<h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Create Facet</h1>
 			</div>
-			<div class="flex items-center gap-2">
-				<!-- Preview Toggle -->
+			<div class="flex items-center gap-2 flex-wrap">
+				<!-- Preview Toggle - hidden on mobile -->
 				<button
 					type="button"
-					class="btn btn-ghost flex items-center gap-2"
+					class="btn btn-ghost hidden lg:flex items-center gap-2"
 					onclick={() => showPreview = !showPreview}
 					title={showPreview ? 'Hide preview' : 'Show preview'}
 				>
@@ -415,16 +415,16 @@
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
 						{/if}
 					</svg>
-					<span class="hidden sm:inline">{showPreview ? 'Hide' : 'Show'} Preview</span>
+					<span>{showPreview ? 'Hide' : 'Show'} Preview</span>
 				</button>
-				<button type="button" class="btn btn-primary" onclick={handleSubmit} disabled={saving}>
+				<button type="button" class="btn btn-primary text-sm" onclick={handleSubmit} disabled={saving}>
 					{#if saving}
 						<svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
 							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
 						</svg>
 					{/if}
-					Create Facet
+					Create
 				</button>
 			</div>
 		</div>
@@ -433,9 +433,9 @@
 		<div class="editor-layout" class:with-preview={showPreview}>
 			<!-- Editor Pane -->
 			<div class="editor-pane">
-		<form onsubmit={preventDefault(handleSubmit)} class="space-y-6">
+		<form onsubmit={preventDefault(handleSubmit)} class="space-y-4 sm:space-y-6">
 			<!-- Basic Info -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h2>
 
 				<div>
@@ -587,7 +587,7 @@
 			</div>
 
 			<!-- Hero Overrides -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Hero Overrides</h2>
 				<p class="text-sm text-gray-500 -mt-2">Override your profile headline and summary for this view</p>
 
@@ -614,7 +614,7 @@
 			</div>
 
 			<!-- Call to Action -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Call to Action</h2>
 				<p class="text-sm text-gray-500 -mt-2">Add a prominent button to this view</p>
 
@@ -643,7 +643,7 @@
 			</div>
 
 			<!-- Settings -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Settings</h2>
 
 				<!-- Accent Color Override -->
@@ -721,7 +721,7 @@
 			</div>
 
 			<!-- Sections -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<div class="flex items-center justify-between">
 					<div>
 						<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Content Sections</h2>
@@ -979,7 +979,7 @@
 <style>
 	.view-editor-container {
 		max-width: 100%;
-		padding: 0 1rem;
+		overflow-x: hidden;
 	}
 
 	.editor-layout {
@@ -1005,6 +1005,7 @@
 		max-width: 480px;
 	}
 
+	/* Mobile - stack and constrain */
 	@media (max-width: 1024px) {
 		.editor-layout {
 			flex-direction: column;
@@ -1012,19 +1013,20 @@
 
 		.editor-pane {
 			max-width: 100%;
+			width: 100%;
 		}
 
 		.preview-pane {
 			width: 100%;
 			max-width: 100%;
-			order: -1;
 			margin-bottom: 1rem;
 		}
 	}
 
+	/* Large screens - show side by side with more padding */
 	@media (min-width: 1280px) {
 		.view-editor-container {
-			padding: 0 2rem;
+			padding: 0 1rem;
 		}
 
 		.preview-pane {

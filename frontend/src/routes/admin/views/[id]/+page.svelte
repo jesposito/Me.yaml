@@ -929,9 +929,9 @@
 		<div class="editor-layout" class:with-preview={showPreview}>
 			<!-- Editor Pane -->
 			<div class="editor-pane">
-		<form onsubmit={preventDefault(handleSubmit)} class="space-y-6">
+		<form onsubmit={preventDefault(handleSubmit)} class="space-y-4 sm:space-y-6">
 			<!-- Basic Info -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Basic Information</h2>
 
 				<div>
@@ -1186,7 +1186,7 @@
 			</div>
 
 			<!-- Hero Overrides -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Hero Overrides</h2>
 				<p class="text-sm text-gray-500 -mt-2">Override your profile's hero image, headline and summary for this view</p>
 
@@ -1285,7 +1285,7 @@
 			</div>
 
 			<!-- Call to Action -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Call to Action</h2>
 				<p class="text-sm text-gray-500 -mt-2">Add a prominent button to this view</p>
 
@@ -1314,7 +1314,7 @@
 			</div>
 
 			<!-- Settings -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Settings</h2>
 
 				<!-- Accent Color Override -->
@@ -1391,7 +1391,7 @@
 			</div>
 
 			<!-- Sections -->
-			<div class="card p-6 space-y-4">
+			<div class="card p-4 sm:p-6 space-y-4">
 				<div class="flex items-center justify-between">
 					<div>
 						<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Content Sections</h2>
@@ -1950,7 +1950,6 @@
 <style>
 	.view-editor-container {
 		max-width: 100%;
-		padding: 0 1rem;
 		overflow-x: hidden;
 	}
 
@@ -1977,7 +1976,7 @@
 		max-width: 480px;
 	}
 
-	/* Hide preview on smaller screens */
+	/* Mobile - stack and constrain */
 	@media (max-width: 1024px) {
 		.editor-layout {
 			flex-direction: column;
@@ -1985,6 +1984,7 @@
 
 		.editor-pane {
 			max-width: 100%;
+			width: 100%;
 		}
 
 		.preview-pane {
@@ -1994,10 +1994,10 @@
 		}
 	}
 
-	/* Large screens - show side by side */
+	/* Large screens - show side by side with more padding */
 	@media (min-width: 1280px) {
 		.view-editor-container {
-			padding: 0 2rem;
+			padding: 0 1rem;
 		}
 
 		.preview-pane {
