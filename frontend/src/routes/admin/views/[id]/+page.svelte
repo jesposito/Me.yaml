@@ -869,20 +869,20 @@
 		</div>
 	{:else}
 		<!-- Header -->
-		<div class="flex items-center justify-between mb-6 px-4">
+		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
 			<div class="flex items-center gap-4">
 				<a href="/admin/views" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300" aria-label="Back to facets">
 					<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 					</svg>
 				</a>
-				<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Edit Facet</h1>
+				<h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Edit Facet</h1>
 			</div>
-			<div class="flex items-center gap-2">
-				<!-- Preview Toggle -->
+			<div class="flex items-center gap-2 flex-wrap">
+				<!-- Preview Toggle - hidden on mobile since preview is collapsible -->
 				<button
 					type="button"
-					class="btn btn-ghost flex items-center gap-2"
+					class="btn btn-ghost hidden lg:flex items-center gap-2"
 					onclick={() => showPreview = !showPreview}
 					title={showPreview ? 'Hide preview' : 'Show preview'}
 				>
@@ -894,15 +894,16 @@
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
 						{/if}
 					</svg>
-					<span class="hidden sm:inline">{showPreview ? 'Hide' : 'Show'} Preview</span>
+					<span>{showPreview ? 'Hide' : 'Show'} Preview</span>
 				</button>
-				<button type="button" class="btn btn-secondary" onclick={previewView}>
-					Open in Tab
+				<button type="button" class="btn btn-secondary text-sm" onclick={previewView}>
+					<span class="sm:hidden">View</span>
+					<span class="hidden sm:inline">Open in Tab</span>
 				</button>
 				{#if aiPrintStatus.ai_configured}
 					<button
 						type="button"
-						class="btn btn-secondary flex items-center gap-2"
+						class="btn btn-secondary text-sm flex items-center gap-1 sm:gap-2"
 						onclick={() => showGenerateModal = true}
 						title={aiPrintStatus.pandoc_installed ? "Generate AI-powered resume" : "Generate Resume (Pandoc not installed)"}
 					>
@@ -912,7 +913,7 @@
 						<span class="hidden sm:inline">Generate Resume</span>
 					</button>
 				{/if}
-				<button type="button" class="btn btn-primary" onclick={handleSubmit} disabled={saving}>
+				<button type="button" class="btn btn-primary text-sm" onclick={handleSubmit} disabled={saving}>
 					{#if saving}
 						<svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
 							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -1950,6 +1951,7 @@
 	.view-editor-container {
 		max-width: 100%;
 		padding: 0 1rem;
+		overflow-x: hidden;
 	}
 
 	.editor-layout {
