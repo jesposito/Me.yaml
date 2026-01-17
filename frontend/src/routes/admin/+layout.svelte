@@ -37,7 +37,7 @@
 
 
 
-	async function checkDefaultPassword() {
+	async function checkDefaultPassword(): Promise<boolean> {
 		try {
 			const response = await fetch('/api/auth/check-default-password', {
 				headers: {
@@ -49,11 +49,13 @@
 				const data = await response.json();
 				if (data.has_default_password) {
 					showPasswordChangeModal = true;
+					return true;
 				}
 			}
 		} catch (err) {
 			console.error('Failed to check default password:', err);
 		}
+		return false;
 	}
 	
 	async function checkSetupWizard() {
@@ -133,18 +135,21 @@
 		const isAuthenticated = $currentUser && pb.authStore.isValid;
 
 		if (isAuthenticated) {
-			checkDefaultPassword();
-			checkSetupWizard();
+			const needsPasswordChange = await checkDefaultPassword();
+			if (!needsPasswordChange) {
+				checkSetupWizard();
+			}
 			authorized = true;
 			loading = false;
 		} else if (pb.authStore.isValid && !$currentUser) {
-			// Auth store is valid but $currentUser store not updated yet - wait briefly
 			await new Promise(resolve => setTimeout(resolve, 150));
 
 			const stillAuthenticated = $currentUser && pb.authStore.isValid;
 			if (stillAuthenticated) {
-				checkDefaultPassword();
-				checkSetupWizard();
+				const needsPasswordChange = await checkDefaultPassword();
+				if (!needsPasswordChange) {
+					checkSetupWizard();
+				}
 				authorized = true;
 				loading = false;
 			} else {
@@ -202,18 +207,19 @@
 			authorized = false;
 		}
 	});
-	// Reactive auth check - update authorized when currentUser changes
 	run(() => {
 		if (mounted && !isLoginPage) {
-		const isAuth = $currentUser && pb.authStore.isValid;
-		if (isAuth && !authorized) {
-			// User just logged in - check for default password and setup wizard
-			checkDefaultPassword();
-			checkSetupWizard();
-			authorized = true;
-			loading = false;
+			const isAuth = $currentUser && pb.authStore.isValid;
+			if (isAuth && !authorized) {
+				authorized = true;
+				loading = false;
+				(async () => {
+					const needsPasswordChange = await checkDefaultPassword();
+					if (!needsPasswordChange) {
+						checkSetupWizard();
+					}
+				})();
 			} else if (!isAuth && authorized) {
-				// User just logged out - redirect
 				authorized = false;
 				goto('/admin/login');
 			}
