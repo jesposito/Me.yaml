@@ -288,7 +288,9 @@
 				{/if}
 			</div>
 			<ShareButton 
-				url={browser ? window.location.href : `/${data.view?.slug || ''}`}
+				url={browser 
+					? (data.shareToken ? `${window.location.origin}/s/${data.shareToken}` : window.location.href)
+					: (data.shareToken ? `/s/${data.shareToken}` : `/${data.view?.slug || ''}`)}
 				title={`${data.profile?.name || 'Profile'} - ${data.view?.name || 'View'}`}
 				text={data.view?.hero_headline || data.profile?.headline || ''}
 			/>
